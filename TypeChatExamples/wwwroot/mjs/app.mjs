@@ -11,6 +11,9 @@ export { client, Apps }
 /** Shared Components */
 const Components = {
 }
+const CustomElements = [
+    'lite-youtube'
+]
 
 const alreadyMounted = el => el.__vue_app__ 
 
@@ -31,6 +34,8 @@ export function mount(sel, component, props) {
     })
     app.use(ServiceStackVue)
     app.component('RouterLink', ServiceStackVue.component('RouterLink'))
+    app.config.compilerOptions.isCustomElement = tag => CustomElements.includes(tag)
+
     app.mount(el)
     Apps.push(app)
     return app
