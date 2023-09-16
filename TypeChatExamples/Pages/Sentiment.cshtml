@@ -1,0 +1,243 @@
+﻿@page "/sentiment"
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="absolute top-16 right-4">
+    <a href="/sentiment/schema" class="text-indigo-600">schema.ts</a>
+    <a href="/sentiment/prompt?userMessage=TypeChat+is+awesome!" class="ml-4 text-indigo-600">prompt</a>
+    <a href="https://github.com/NetCoreApps/SentimentTypeChat" class="ml-4 text-indigo-600">github</a>
+</div>
+
+<div class="container mx-auto px-5">
+    <section class="flex-col md:flex-row flex items-center md:justify-between mt-16 mb-16 md:mb-12">
+        <div class="flex">
+            <a href="/sentiment">
+                <svg class="w-28 h-28 mr-6" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+                    <path fill="currentColor" d="M18.303 10a2.662 2.662 0 0 0-1.908.806l-.393.405l-.397-.405a2.662 2.662 0 0 0-3.816 0a2.8 2.8 0 0 0 0 3.896L16.002 19l4.209-4.298a2.8 2.8 0 0 0 0-3.896A2.662 2.662 0 0 0 18.303 10Z"/>
+                    <path fill="currentColor" d="M17.736 30L16 29l4-7h6a1.997 1.997 0 0 0 2-2V8a1.997 1.997 0 0 0-2-2H6a1.997 1.997 0 0 0-2 2v12a1.997 1.997 0 0 0 2 2h9v2H6a4 4 0 0 1-4-4V8a3.999 3.999 0 0 1 4-4h20a3.999 3.999 0 0 1 4 4v12a4 4 0 0 1-4 4h-4.835Z"/>
+                </svg>
+            </a>
+            <h1 class="text-6xl md:text-8xl font-bold tracking-tighter leading-tight md:pr-8">Sentiment TypeChat</h1>
+        </div>
+    </section>
+</div>
+
+<div id="app" v-cloak class="container mx-auto px-5">
+    <div>
+        <div class="mx-auto max-w-screen-sm flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-end">
+            <div class="mb-8 lg:mb-0 w-full lg:w-auto">
+                <form v-if="!(loadingRecording || isRecording || isTranscribing || transcript)" v-on:submit.prevent="onSubmit">
+                    <text-input v-model="txtInput" :disabled="isSendingChat" class="w-full lg:w-96 text-2xl" placeholder="What is happening?"></text-input>
+                    <input-examples :loading="isSendingChat" v-model="txtInput" v-on:change="onSubmit" class="mt-2">
+                        <pre>
+                        hello, world
+                        TypeChat is awesome!
+                        I'm having a good day
+                        it's very rainy outside
+                        </pre>
+                    </input-examples>
+                </form>
+                <div class="mt-2 text-2xl text-gray-600">
+                    <div v-if="isTranscribing" class="pr-20 flex items-center">
+                        <loading></loading>
+                        Transcribing...
+                    </div>
+                    <div v-else-if="apiProcessed.response" class="text-green-600 flex">
+                        <div>
+                            {{apiProcessed.response}}
+                        </div>
+                    </div>
+                    <div v-else-if="apiProcessed.error" class="text-red-600 flex">
+                        <div>
+                            <div class="text-lg">
+                                {{apiProcessed.error.message}}
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="transcript" class="lowercase">
+                        <div class="pb-4">{{ transcript }}</div>
+                    </div>
+                    <div class="pr-20" v-else-if="loadingRecording">Initializing...</div>
+                    <div class="pr-20" v-else-if="isListening">Listening...</div>
+                    <div class="pr-20" v-else-if="isRecording">Speak Now</div>
+                </div>
+            </div>
+            <div class="lg:ml-8">
+                <record-button :loading="loadingRecording" :recording="isRecording" v-on:toggle="toggleRecording"></record-button>
+                <div class="relative mr-3">
+                    <close-button title="clear" v-if="apiProcessed.response || apiProcessed.error || transcript" v-on:click="clear"></close-button>
+                </div>
+            </div>
+            <div :class="['ml-4', audio ? '' : 'invisible']">
+                <play-button :playing="isPlaying" v-on:play="audio.play()" v-on:pause="audio.pause()"></play-button>
+            </div>
+        </div>
+        <div v-if="chatResult" class="mt-8 mx-auto max-w-screen-sm flex justify-center">
+            <div class="flex flex-col text-center">
+                <div class="mb-4 text-2xl">is</div>
+                <svg v-if="chatResult=='positive'" class="text-gray-600 w-40 h-40 bg-yellow-400 rounded-full" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="15.5" cy="9.5" r="1.5" fill="currentColor"/><circle cx="8.5" cy="9.5" r="1.5" fill="currentColor"/><path fill="currentColor" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8s-3.58 8-8 8zm-5-6c.78 2.34 2.72 4 5 4s4.22-1.66 5-4H7z"/></svg>
+                <svg v-else-if="chatResult=='neutral'" class="text-gray-600 w-40 h-40 rounded-full" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M9 14h6v1.5H9z"/><circle cx="15.5" cy="9.5" r="1.5" fill="currentColor"/><circle cx="8.5" cy="9.5" r="1.5" fill="currentColor"/><path fill="currentColor" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8s-3.58 8-8 8z"/></svg>
+                <svg v-else-if="chatResult=='negative'" class="text-gray-600 w-40 h-40 bg-red-400 rounded-full" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 22q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22Zm0-2q3.325 0 5.663-2.337T20 12q0-3.325-2.337-5.663T12 4Q8.675 4 6.337 6.337T4 12q0 3.325 2.337 5.663T12 20Zm3.5-8q.625 0 1.063-.438T17 10.5q0-.375-.175-.713t-.475-.537l.225-.125q.2-.125.25-.313t-.075-.387q-.125-.2-.3-.25t-.375.075l-2.65 1.5q-.2.1-.237.288t.062.387q.125.2.313.263t.387-.063L14 10.6q.05.6.475 1t1.025.4Zm-7 0q.6 0 1.025-.4t.475-1l.05.025q.2.125.388.075t.312-.25q.1-.2.05-.388t-.25-.312l-2.625-1.5q-.2-.1-.375-.05t-.3.25q-.125.2-.075.375t.25.3l.225.125q-.3.2-.475.537T7 10.5q0 .625.438 1.063T8.5 12Zm3.5 1q-1.775 0-3.125 1.137T6.975 17h10.05q-.55-1.725-1.9-2.863T12 13Zm0-1Z"/></svg>
+                <b class="mt-4 text-2xl">{{chatResult}}</b>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="module">
+import { mount } from "/mjs/app.mjs"
+import { ref, computed, onMounted, shallowRef } from "vue"
+import { ApiResult, leftPart, rightPart, appendQueryString, omit, map, humanize } from "@@servicestack/client"
+import { Authenticate, CreateRecording, CreateChat } from "/mjs/dtos.mjs" 
+import { AudioRecorder } from "/mjs/AudioRecorder.mjs"
+import RecordButton from "/mjs/components/RecordButton.mjs"
+import PlayButton from "/mjs/components/PlayButton.mjs"
+import InputExamples from "/mjs/components/InputExamples.mjs"
+
+const Mock = {
+    transcribing: 1,
+    sendingChat: 1,
+    wait: 200,
+    recording: {
+        "transcript": "TypeChat is awesome!",
+    },
+    chat: {
+        "chatResponse": '{"sentiment": "positive"}',
+    }
+}
+
+const App = {
+    components: {
+        RecordButton,
+        PlayButton,
+        InputExamples,
+    },
+    setup() {
+        const txtInput = ref('')       
+        const isRecording = ref(false)
+        const loadingRecording = ref(false)
+        const isTranscribing = ref(false)
+        const isListening = ref(false)
+        const isSendingChat = ref(false)
+        let audioRecorder = new AudioRecorder()
+        window.audioRecorder = audioRecorder
+        const audio = ref()
+        const isPlaying = ref(false)
+        const transcript = ref('')
+        const apiChat = ref(new ApiResult())
+        const apiProcessed = ref(new ApiResult())
+        const chatResult = ref('')
+        
+        const feature = 'sentiment'
+        const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
+        
+        function clear() {
+            loadingRecording.value = false
+            isListening.value = false
+            isTranscribing.value = false
+            transcript.value = ''
+            apiProcessed.value = new ApiResult()
+            txtInput.value = ''
+            audio.value = null
+            chatResult.value = ''
+        }
+        
+        async function toggleRecording() {
+            if (!navigator.mediaDevices?.getUserMedia) {
+                alert('getUserMedia() is not supported in your browser')
+                return
+            }
+            
+            clear()
+            if (!isRecording.value) {
+                audio.value = null
+                loadingRecording.value = true
+                await audioRecorder.start()
+                loadingRecording.value = false
+                isRecording.value = true
+                setTimeout(() => isListening.value = true, 2000)
+            } else {
+                isRecording.value = false
+                isTranscribing.value = true
+                audio.value = await audioRecorder.stop()
+                audio.value.addEventListener('playing', e => isPlaying.value = true)
+                audio.value.addEventListener('pause', e => isPlaying.value = false)
+                audio.value.addEventListener('ended', e => isPlaying.value = false)
+                
+                if (Mock.transcribing) {
+                    await timeout(Mock.wait)
+                    transcript.value = Mock.recording.transcript
+                } else {
+                    const formData = new FormData()
+                    formData.append('path', audioRecorder.audioBlob, `file.${audioRecorder.audioExt}`)
+                    console.time('transcribe')
+                    const api = await client.apiForm(new CreateRecording({ feature }), formData)
+                    if (api.succeeded) {
+                        transcript.value = api.response.transcript
+                    }
+                    console.timeEnd('transcribe')
+                }
+                isTranscribing.value = false
+                await processRequest(transcript.value)
+            }
+        }        
+
+        async function onSubmit() {
+            const request = txtInput.value
+            clear()
+            txtInput.value = request
+            await processRequest(request)
+            txtInput.value = ''
+        }
+        
+        async function processRequest(request) {
+            if (!request || !request.trim()) return
+            
+            isSendingChat.value = true
+            if (Mock.sendingChat) {
+                await timeout(Mock.wait)
+                apiChat.value = new ApiResult({ response: Mock.chat })
+            } else {
+                console.time('gpt')
+                apiChat.value = await client.api(new CreateChat({ feature, userMessage: request.toLowerCase() }))
+                console.timeEnd('gpt')
+            }
+            transcript.value = request
+            isSendingChat.value = false
+            if (apiChat.value.response) {
+                processChatResponse(JSON.parse(apiChat.value.response.chatResponse))
+            } else if (apiChat.value.error) {
+                apiProcessed.value = apiChat.value
+            }
+        }
+        
+        function processChatResponse(response) {
+            console.log('processChatResponse', response)
+            chatResult.value = response.sentiment
+        }
+
+        return {
+            txtInput,       
+            isRecording,
+            loadingRecording,
+            isTranscribing,
+            isListening,
+            isSendingChat,
+            audio,
+            isPlaying,
+            transcript,
+            apiChat,
+            apiProcessed,
+            chatResult,
+            clear,
+            onSubmit,
+            toggleRecording,
+        }
+    }
+}
+
+mount('#app', App)
+</script>

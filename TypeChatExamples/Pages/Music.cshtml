@@ -1,0 +1,322 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Music";
+}
+
+<div class="container mx-auto px-5">
+    <section class="flex-col md:flex-row flex items-center md:justify-between mt-16 mb-16 md:mb-12">
+        <div class="flex">
+            <a href="/music">
+                <svg class="w-28 h-28 mr-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                    <path fill="currentColor" d="M21.65 2.24a1 1 0 0 0-.8-.23l-13 2A1 1 0 0 0 7 5v10.35A3.45 3.45 0 0 0 5.5 15A3.5 3.5 0 1 0 9 18.5v-7.64l11-1.69v4.18a3.45 3.45 0 0 0-1.5-.35a3.5 3.5 0 1 0 3.5 3.5V3a1 1 0 0 0-.35-.76ZM5.5 20A1.5 1.5 0 1 1 7 18.5A1.5 1.5 0 0 1 5.5 20Zm13-2a1.5 1.5 0 1 1 1.5-1.5a1.5 1.5 0 0 1-1.5 1.5ZM20 7.14L9 8.83v-3l11-1.66Z"/>
+                </svg>
+            </a>
+            <h1 class="text-6xl md:text-8xl font-bold tracking-tighter leading-tight md:pr-8">Music TypeChat</h1>
+        </div>
+    </section>
+</div>
+
+<div id="app" v-cloak class="container mx-auto px-5">
+    <div>
+        <div v-if="!user" class="mb-8 flex justify-center">
+            <outline-button href="/auth/spotify">
+                <svg class="w-6 h-6 mr-2" xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+                    <path fill="#1ED760" d="M128 0C57.308 0 0 57.309 0 128c0 70.696 57.309 128 128 128c70.697 0 128-57.304 128-128C256 57.314 198.697.007 127.998.007l.001-.006Zm58.699 184.614c-2.293 3.76-7.215 4.952-10.975 2.644c-30.053-18.357-67.885-22.515-112.44-12.335a7.981 7.981 0 0 1-9.552-6.007a7.968 7.968 0 0 1 6-9.553c48.76-11.14 90.583-6.344 124.323 14.276c3.76 2.308 4.952 7.215 2.644 10.975Zm15.667-34.853c-2.89 4.695-9.034 6.178-13.726 3.289c-34.406-21.148-86.853-27.273-127.548-14.92c-5.278 1.594-10.852-1.38-12.454-6.649c-1.59-5.278 1.386-10.842 6.655-12.446c46.485-14.106 104.275-7.273 143.787 17.007c4.692 2.89 6.175 9.034 3.286 13.72v-.001Zm1.345-36.293C162.457 88.964 94.394 86.71 55.007 98.666c-6.325 1.918-13.014-1.653-14.93-7.978c-1.917-6.328 1.65-13.012 7.98-14.935C93.27 62.027 168.434 64.68 215.929 92.876c5.702 3.376 7.566 10.724 4.188 16.405c-3.362 5.69-10.73 7.565-16.4 4.187h-.006Z"/>
+                </svg>
+                Sign In
+            </outline-button>
+        </div>
+        <div class="mx-auto max-w-screen-sm flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-end">
+            <div class="mb-8 lg:mb-0 w-full lg:w-auto">
+                <form v-if="!(loadingRecording || isRecording || isTranscribing || transcript)" v-on:submit.prevent="onSubmit">
+                    <text-input v-model="txtInput" :disabled="isSendingChat" class="w-full lg:w-96 text-2xl" placeholder="What can we play for you today?"></text-input>
+                    <input-examples :loading="isSendingChat" v-model="txtInput" v-on:change="onSubmit" class="mt-2">
+                        <pre>
+                        play Taylor Swift Shake It Off
+                        get my top 20 favorites and make a playlist named animalTracks of the tracks that have animals in their names
+                        get my favorite 100 tracks from the last two months and show only the ones by Bach
+                        make it loud
+                        get my favorite 80 tracks from the last 8 months and create one playlist named class8 containing the classical tracks and another playlist containing the blues tracks
+                        toggle shuffle on and skip to the next track
+                        go back to the last song
+                        play my playlist class8
+                        play the fourth one
+                        show me my queue
+                        </pre>
+                    </input-examples>
+                </form>
+                <div class="mt-2 text-2xl text-gray-600">
+                    <div v-if="isTranscribing" class="pr-20 flex items-center">
+                        <loading></loading>
+                        Transcribing...
+                    </div>
+                    <div v-else-if="apiProcessed.response" class="text-green-600 flex">
+                        <div>
+                            {{apiProcessed.response}}
+                        </div>
+                    </div>
+                    <div v-else-if="apiProcessed.error" class="text-red-600 flex">
+                        <div>
+                            <div class="text-lg">
+                                {{apiProcessed.error.message}}
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="transcript" class="lowercase">
+                        <div class="pb-4">{{ transcript }}</div>
+                    </div>
+                    <div class="pr-20" v-else-if="loadingRecording">Initializing...</div>
+                    <div class="pr-20" v-else-if="isListening">Listening...</div>
+                    <div class="pr-20" v-else-if="isRecording">Speak Now</div>
+                </div>
+            </div>
+            <div class="lg:ml-8">
+                <record-button :loading="loadingRecording" :recording="isRecording" v-on:toggle="toggleRecording"></record-button>
+                <div class="relative mr-3">
+                    <close-button title="clear" v-if="apiProcessed.response || apiProcessed.error || transcript" v-on:click="clear"></close-button>
+                </div>
+            </div>
+            <div :class="['ml-4', audio ? '' : 'invisible']">
+                <play-button :playing="isPlaying" v-on:play="audio.play()" v-on:pause="audio.pause()"></play-button>
+            </div>
+        </div>
+        <div v-if="chatResult && !isSendingChat" class="mt-12">
+            <music-steps class="mx-auto max-w-screen-sm p-4 bg-gray-50 dark:bg-gray-900 rounded-md" :response="chatResult"></music-steps>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { mount } from "/mjs/app.mjs"
+import { ref, computed, onMounted, shallowRef } from "vue"
+import { ApiResult, leftPart, rightPart, appendQueryString, omit, map, humanize } from "@@servicestack/client"
+import { useAuth } from "@@servicestack/vue"
+import { CreateRecording, CreateSpotifyChat } from "/mjs/dtos.mjs" 
+import { AudioRecorder } from "/mjs/AudioRecorder.mjs"
+import RecordButton from "/mjs/components/RecordButton.mjs"
+import PlayButton from "/mjs/components/PlayButton.mjs"
+import InputExamples from "/mjs/components/InputExamples.mjs"
+
+const [$func, $args, $ref, $steps] = ["@@func", "@@args", "@@ref", "@@steps"] 
+const Mock = {
+    transcribing: 0,
+    sendingChat: 0,
+    wait: 200,
+    recording: {
+        "transcript": "play Taylor Swift Shake It Off",
+    },
+    chat: {
+        stepResults:[],
+        [$steps]:[{
+            [$func]:"searchTracks",
+            [$args]:["Taylor Swift Shake It Off","track"]
+        },
+        {
+            [$func]:"play",
+            [$args]:[ { [$ref]: 0 } ]
+        }]
+    }
+}
+
+const MusicSteps = {
+  template: /*html*/ `
+    <div class="p-4">
+        <h1 class="text-xl font-semibold mb-4">Spotify Command Visualizer</h1>
+        
+        <h2 class="text-lg font-medium mb-2">Steps</h2>
+        <ul class="mb-4">
+          <li v-for="(step, index) in formattedSteps" :key="index" class="mb-2">
+            <div class="p-3 bg-white dark:bg-black rounded-md">
+              {{ step }}
+            </div>
+          </li>
+        </ul>
+        
+        <div v-if="stepResults.length">
+            <h2 class="text-lg font-medium mt-4 mb-2">Tracks</h2>
+            <ul class="mb-4">
+                <li v-for="track in getLastTrackArray(stepResults)" :key="track.uri" class="mb-2">
+                    <div class="p-3 bg-white dark:bg-black rounded-md">
+                        <a :href="track.uri" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700 hover:underline inline-flex items-center">
+                          {{ track.name }} - {{ track.album }}
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1-2V9"></path>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13l-3 3m0 0l-3-3m3 3V10"></path>
+                          </svg>
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>`,
+  props: ['response'],
+  setup(props) {
+      console.log('MusicSteps', JSON.stringify(props.response))
+      const stepResults = ref(props.response.stepResults || [])
+      const steps = ref(props.response[$steps])
+
+      const formattedSteps = computed(() => {
+          return steps.value.map((step) => {
+              const func = step[$func]
+              const args = step[$args].map((arg) => {
+                  if (typeof arg === 'object' && arg[$ref] !== undefined) {
+                      return `Result[${arg[$ref]}]`
+                  }
+                  return JSON.stringify(arg)
+              }).join(', ')
+
+              return `${func}(${args})`
+          });
+      });
+
+      function getLastTrackArray(stepResults) {
+          for (let i = stepResults.length - 1; i >= 0; i--) {
+              if (Array.isArray(stepResults[i])) {
+                  return stepResults[i]
+              }
+          }
+          return []
+      }
+
+      return { stepResults, formattedSteps, getLastTrackArray }
+  },
+}
+
+const App = {
+    components: {
+        RecordButton,
+        PlayButton,
+        InputExamples,
+        MusicSteps,
+    },
+    setup() {
+        const txtInput = ref('')       
+        const isRecording = ref(false)
+        const loadingRecording = ref(false)
+        const isTranscribing = ref(false)
+        const isListening = ref(false)
+        const isSendingChat = ref(false)
+        let audioRecorder = new AudioRecorder()
+        window.audioRecorder = audioRecorder
+        const audio = ref()
+        const isPlaying = ref(false)
+        const transcript = ref('')
+        const apiChat = ref(new ApiResult())
+        const apiProcessed = ref(new ApiResult())
+        const chatResult = ref()
+        const { user, signIn } = useAuth()
+        
+        const feature = 'music'
+        const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
+        
+        function clear() {
+            loadingRecording.value = false
+            isListening.value = false
+            isTranscribing.value = false
+            transcript.value = ''
+            apiProcessed.value = new ApiResult()
+            txtInput.value = ''
+            audio.value = null
+            chatResult.value = null
+        }
+        
+        async function toggleRecording() {
+            if (!navigator.mediaDevices?.getUserMedia) {
+                alert('getUserMedia() is not supported in your browser')
+                return
+            }
+            
+            clear()
+            if (!isRecording.value) {
+                audio.value = null
+                loadingRecording.value = true
+                await audioRecorder.start()
+                loadingRecording.value = false
+                isRecording.value = true
+                setTimeout(() => isListening.value = true, 2000)
+            } else {
+                isRecording.value = false
+                isTranscribing.value = true
+                audio.value = await audioRecorder.stop()
+                audio.value.addEventListener('playing', e => isPlaying.value = true)
+                audio.value.addEventListener('pause', e => isPlaying.value = false)
+                audio.value.addEventListener('ended', e => isPlaying.value = false)
+                
+                if (Mock.transcribing) {
+                    await timeout(Mock.wait)
+                    transcript.value = Mock.recording.transcript
+                } else {
+                    const formData = new FormData()
+                    formData.append('path', audioRecorder.audioBlob, `file.${audioRecorder.audioExt}`)
+                    console.time('transcribe')
+                    const api = await client.apiForm(new CreateRecording({feature}), formData)
+                    if (api.succeeded) {
+                        transcript.value = api.response.transcript
+                    }
+                    console.timeEnd('transcribe')
+                }
+                isTranscribing.value = false
+                await processRequest(transcript.value)
+            }
+        }        
+
+        async function onSubmit() {
+            const request = txtInput.value
+            clear()
+            txtInput.value = request
+            await processRequest(request)
+            txtInput.value = ''
+        }
+        
+        async function processRequest(request) {
+            if (!request || !request.trim()) return
+            
+            isSendingChat.value = true
+            if (Mock.sendingChat) {
+                await timeout(Mock.wait)
+                apiChat.value = new ApiResult({ response: Mock.chat })
+            } else {
+                console.time('gpt')
+                apiChat.value = await client.api(new CreateSpotifyChat({
+                    userMessage: request.toLowerCase()
+                }))
+                console.timeEnd('gpt')
+            }
+            transcript.value = request
+            isSendingChat.value = false
+            if (apiChat.value.response) {
+                processChatResponse(apiChat.value.response)
+            } else if (apiChat.value.error) {
+                apiProcessed.value = apiChat.value
+            }
+        }
+        
+        function processChatResponse(response) {
+            console.log('processChatResponse', response)
+            chatResult.value = response
+        }
+
+        return {
+            user,
+            txtInput,       
+            isRecording,
+            loadingRecording,
+            isTranscribing,
+            isListening,
+            isSendingChat,
+            audio,
+            isPlaying,
+            transcript,
+            apiChat,
+            apiProcessed,
+            chatResult,
+            clear,
+            onSubmit,
+            toggleRecording,
+        }
+    }
+}
+
+mount('#app', App)
+</script>

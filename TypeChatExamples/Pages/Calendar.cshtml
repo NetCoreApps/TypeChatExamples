@@ -1,0 +1,290 @@
+﻿@page "/calendar"
+@model IndexModel
+@{
+    ViewData["Title"] = "Calendar";
+}
+
+<div class="container mx-auto px-5">
+    <section class="flex-col md:flex-row flex items-center md:justify-between mt-16 mb-16 md:mb-12">
+        <div class="flex">
+            <a href="/calendar">
+                <svg class="w-28 h-28 mr-6" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+                    <path fill="#CFD8DC" d="M5 38V14h38v24c0 2.2-1.8 4-4 4H9c-2.2 0-4-1.8-4-4z"/>
+                    <path fill="#F44336" d="M43 10v6H5v-6c0-2.2 1.8-4 4-4h30c2.2 0 4 1.8 4 4z"/>
+                    <g fill="#B71C1C"><circle cx="33" cy="10" r="3"/><circle cx="15" cy="10" r="3"/></g>
+                    <path fill="#B0BEC5" d="M33 3c-1.1 0-2 .9-2 2v5c0 1.1.9 2 2 2s2-.9 2-2V5c0-1.1-.9-2-2-2zM15 3c-1.1 0-2 .9-2 2v5c0 1.1.9 2 2 2s2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                    <path fill="#90A4AE" d="M13 20h4v4h-4zm6 0h4v4h-4zm6 0h4v4h-4zm6 0h4v4h-4zm-18 6h4v4h-4zm6 0h4v4h-4zm6 0h4v4h-4zm6 0h4v4h-4zm-18 6h4v4h-4zm6 0h4v4h-4zm6 0h4v4h-4zm6 0h4v4h-4z"/>
+                </svg>
+            </a>
+            <h1 class="text-6xl md:text-8xl font-bold tracking-tighter leading-tight md:pr-8">Calendar TypeChat</h1>
+        </div>
+    </section>
+</div>
+
+<div id="app" v-cloak class="container mx-auto px-5">
+    <div>
+        <div class="mx-auto max-w-screen-sm flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-end">
+            <div class="mb-8 lg:mb-0 w-full lg:w-auto">
+                <form v-if="!(loadingRecording || isRecording || isTranscribing || transcript)" v-on:submit.prevent="onSubmit">
+                    <text-input v-model="txtInput" :disabled="isSendingChat" class="w-full lg:w-96 text-2xl" placeholder="What can we get for you today?"></text-input>
+                    <input-examples :loading="isSendingChat" v-model="txtInput" v-on:change="onSubmit" class="mt-2">
+                        <pre>
+                        I need to get my tires changed from 12:00 to 2:00 pm on Friday March 15, 2024
+                        Search for any meetings with Gavin this week
+                        Set up an event for friday named Jeffs pizza party at 6pm
+                        Please add Jennifer to the scrum next Thursday
+                        Will you please add an appointment with Jerri Skinner at 9 am? I need it to last 2 hours
+                        Do I have any plan with Rosy this month?
+                        I need to add a meeting with my boss on Monday at 10am. Also make sure to schedule and appointment with Sally, May, and Boris tomorrow at 3pm. Now just add to it Jesse and Abby and make it last ninety minutes
+                        Add meeting with team today at 2
+                        can you record lunch with Luis at 12pm on Friday and also add Isobel to the Wednesday ping pong game at 4pm
+                        I said I'd meet with Jenny this afternoon at 2pm and after that I need to go to the dry cleaner and then the soccer game. Leave an hour for each of those starting at 3:30
+                        </pre>
+                    </input-examples>
+                </form>
+                <div class="mt-2 text-2xl text-gray-600">
+                    <div v-if="isTranscribing" class="pr-20 flex items-center">
+                        <loading></loading>
+                        Transcribing...
+                    </div>
+                    <div v-else-if="apiProcessed.response" class="text-green-600 flex">
+                        <div>
+                            {{apiProcessed.response}}
+                        </div>
+                    </div>
+                    <div v-else-if="apiProcessed.error" class="text-red-600 flex">
+                        <div>
+                            <div class="text-lg">
+                                {{apiProcessed.error.message}}
+                            </div>
+                        </div>
+                    </div>
+                    <div v-else-if="transcript" class="lowercase">
+                        <div class="pb-4">{{ transcript }}</div>
+                    </div>
+                    <div class="pr-20" v-else-if="loadingRecording">Initializing...</div>
+                    <div class="pr-20" v-else-if="isListening">Listening...</div>
+                    <div class="pr-20" v-else-if="isRecording">Speak Now</div>
+                </div>
+            </div>
+            <div class="lg:ml-8">
+                <record-button :loading="loadingRecording" :recording="isRecording" v-on:toggle="toggleRecording"></record-button>
+                <div class="relative mr-3">
+                    <close-button title="clear" v-if="apiProcessed.response || apiProcessed.error || transcript" v-on:click="clear"></close-button>
+                </div>
+            </div>
+            <div :class="['ml-4', audio ? '' : 'invisible']">
+                <play-button :playing="isPlaying" v-on:play="audio.play()" v-on:pause="audio.pause()"></play-button>
+            </div>
+        </div>
+        <div v-if="chatResult && !isSendingChat" class="mt-8">
+            <calendar-actions class="mx-auto max-w-screen-sm" :actions="chatResult"></calendar-actions>
+        </div>
+    </div>
+</div>
+
+
+<script type="module">
+import { mount } from "/mjs/app.mjs"
+import { ref, computed, onMounted, shallowRef } from "vue"
+import { ApiResult, leftPart, rightPart, appendQueryString, omit, map, humanize } from "@@servicestack/client"
+import { Authenticate, CreateRecording, CreateCalendarChat } from "/mjs/dtos.mjs" 
+import { AudioRecorder } from "/mjs/AudioRecorder.mjs"
+import RecordButton from "/mjs/components/RecordButton.mjs"
+import PlayButton from "/mjs/components/PlayButton.mjs"
+import InputExamples from "/mjs/components/InputExamples.mjs"
+
+const Mock = {
+    transcribing: 1,
+    sendingChat: 1,
+    wait: 200,
+    recording: {
+        "transcript": "I need to get my tires changed from 12:00 to 2:00 pm on Friday March 15, 2024",
+    },
+    chat: {
+       "actions": [
+          {
+              "actionType": "add event",
+              "event": {
+                  "day": "friday march 15, 2024",
+                  "timeRange": {
+                      "startTime": "12:00",
+                      "endTime": "2:00 pm"
+                  },
+                  "description": "get my tires changed"
+              }
+          }
+       ]
+    }
+}
+
+const CalendarActions = {
+  template:/*html*/`
+      <div class="relative">
+          <h3 class="text-xl font-semibold mb-4">Calendar Actions</h3>
+          <div class="overflow-hidden bg-white shadow sm:rounded-md">
+              <ul role="list" class="divide-y divide-gray-200">
+                  <li v-for="action in actions.actions" :key="action.actionType" class="px-4 py-4 sm:px-6">
+                      <!-- Handle 'add event' -->
+                      <div v-if="action.actionType === 'add event'" class="text-gray-700">
+                          <h4 class="text-lg font-semibold text-indigo-600">Add Event</h4>
+                          <p><b>Day:</b> {{ action.event?.day }}</p>
+                          <p><b>Time:</b> {{ action.event?.timeRange.startTime }} - {{ action.event?.timeRange.endTime }}</p>
+                          <p><b>Description:</b> {{ action.event?.description }}</p>
+                      </div>
+    
+                      <!-- Handle 'find events' -->
+                      <div v-else-if="action.actionType === 'find events'" class="text-gray-700">
+                          <h4 class="text-lg font-semibold text-indigo-600">Find Events</h4>
+                          <p><b>Participants:</b> {{ action.eventReference?.participants.join(', ') }}</p>
+                          <p><b>Day Range:</b> {{ action.eventReference?.dayRange }}</p>
+                      </div>
+    
+                      <!-- Handle 'add participants' -->
+                      <div v-else-if="action.actionType === 'add participants'" class="text-gray-700">
+                          <h4 class="text-lg font-semibold text-indigo-600">Add Participants</h4>
+                          <p><b>Day:</b> {{ action.eventReference?.day }}</p>
+                          <p><b>Participants:</b> {{ action.participants?.join(', ') }}</p>
+                      </div>
+                      <!-- Handle other action types here -->
+                  </li>
+              </ul>
+          </div>
+      </div>
+  `,
+  props: ['actions']
+}
+
+const App = {
+    components: {
+        RecordButton,
+        PlayButton,
+        InputExamples,
+        CalendarActions,
+    },
+    setup() {
+        const txtInput = ref('')       
+        const isRecording = ref(false)
+        const loadingRecording = ref(false)
+        const isTranscribing = ref(false)
+        const isListening = ref(false)
+        const isSendingChat = ref(false)
+        let audioRecorder = new AudioRecorder()
+        window.audioRecorder = audioRecorder
+        const audio = ref()
+        const isPlaying = ref(false)
+        const transcript = ref('')
+        const apiChat = ref(new ApiResult())
+        const apiProcessed = ref(new ApiResult())
+        const chatResult = ref()
+        
+        const feature = 'calendar'
+        const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
+        
+        function clear() {
+            loadingRecording.value = false
+            isListening.value = false
+            isTranscribing.value = false
+            transcript.value = ''
+            apiProcessed.value = new ApiResult()
+            txtInput.value = ''
+            audio.value = null
+            chatResult.value = null
+        }
+        
+        async function toggleRecording() {
+            if (!navigator.mediaDevices?.getUserMedia) {
+                alert('getUserMedia() is not supported in your browser')
+                return
+            }
+            
+            clear()
+            if (!isRecording.value) {
+                audio.value = null
+                loadingRecording.value = true
+                await audioRecorder.start()
+                loadingRecording.value = false
+                isRecording.value = true
+                setTimeout(() => isListening.value = true, 2000)
+            } else {
+                isRecording.value = false
+                isTranscribing.value = true
+                audio.value = await audioRecorder.stop()
+                audio.value.addEventListener('playing', e => isPlaying.value = true)
+                audio.value.addEventListener('pause', e => isPlaying.value = false)
+                audio.value.addEventListener('ended', e => isPlaying.value = false)
+                
+                if (Mock.transcribing) {
+                    await timeout(Mock.wait)
+                    transcript.value = Mock.recording.transcript
+                } else {
+                    const formData = new FormData()
+                    formData.append('path', audioRecorder.audioBlob, `file.${audioRecorder.audioExt}`)
+                    console.time('transcribe')
+                    const api = await client.apiForm(new CreateRecording({ feature }), formData)
+                    if (api.succeeded) {
+                        transcript.value = api.response.transcript
+                    }
+                    console.timeEnd('transcribe')
+                }
+                isTranscribing.value = false
+                await processOrder(transcript.value)
+            }
+        }        
+
+        async function onSubmit() {
+            const request = txtInput.value
+            clear()
+            txtInput.value = request
+            await processOrder(request)
+            txtInput.value = ''
+        }
+        
+        async function processOrder(request) {
+            if (!request || !request.trim()) return
+            
+            isSendingChat.value = true
+            if (Mock.sendingChat) {
+                await timeout(Mock.wait)
+                apiChat.value = new ApiResult({ response: Mock.chat })
+            } else {
+                console.time('gpt')
+                apiChat.value = await client.api(new CreateCalendarChat({ userMessage: request.toLowerCase() }))
+                console.timeEnd('gpt')
+            }
+            transcript.value = request
+            isSendingChat.value = false
+            if (apiChat.value.response) {
+                processChatResponse(apiChat.value.response)
+            } else if (apiChat.value.error) {
+                apiProcessed.value = apiChat.value
+            }
+        }
+        
+        function processChatResponse(response) {
+            console.log('processChatResponse', response)
+            chatResult.value = response
+        }
+
+        return {
+            txtInput,       
+            isRecording,
+            loadingRecording,
+            isTranscribing,
+            isListening,
+            isSendingChat,
+            audio,
+            isPlaying,
+            transcript,
+            apiChat,
+            apiProcessed,
+            chatResult,
+            clear,
+            onSubmit,
+            toggleRecording,
+        }
+    }
+}
+
+mount('#app', App)
+</script>

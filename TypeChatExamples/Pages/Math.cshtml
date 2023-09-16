@@ -1,0 +1,294 @@
+﻿@page "/math"
+@model IndexModel
+@{
+    ViewData["Title"] = "Math";
+}
+
+<div class="container mx-auto px-5">
+    <section class="flex-col md:flex-row flex items-center md:justify-between mt-16 mb-16 md:mb-12">
+        <div class="flex">
+            <a href="/math">
+                <svg class="w-28 h-28 mr-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                    <path fill="none" stroke="currentColor" stroke-width="2"
+                          d="M19 18H5h14Zm-7 0v-6v6Zm3 0v-4v4Zm-6 0v-4v4Zm10 4V11.33a3.001 3.001 0 1 0-2.08-5.63C16.55 3.874 14.46 2 12 2S7.45 3.874 7.08 5.7A3 3 0 1 0 5 11.33V22h14Z"/>
+                </svg>
+            </a>
+            <h1 class="text-6xl md:text-8xl font-bold tracking-tighter leading-tight md:pr-8">Math TypeChat</h1>
+        </div>
+    </section>
+</div>
+
+<div id="app" v-cloak class="container mx-auto px-5">
+    <div>
+        <div class="mx-auto max-w-screen-sm flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-end">
+            <div class="mb-8 lg:mb-0 w-full lg:w-auto">
+                <form v-if="!(loadingRecording || isRecording || isTranscribing || transcript)" v-on:submit.prevent="onSubmit">
+                    <text-input v-model="txtInput" :disabled="isSendingChat" class="w-full lg:w-96 text-2xl" placeholder="What can we calculate for you today?"></text-input>
+                    <input-examples :loading="isSendingChat" v-model="txtInput" v-on:change="onSubmit" class="mt-2">
+                        <pre>
+                        1 + 2
+                        1 + 2 * 3
+                        2 * 3 + 4 * 5
+                        2 3 * 4 5 * +
+                        multiply two by three, then multiply four by five, then sum the results
+                        </pre>
+                    </input-examples>
+                </form>
+                <div class="mt-2 text-2xl text-gray-600">
+                    <div v-if="isTranscribing" class="pr-20 flex items-center">
+                        <loading></loading>
+                        Transcribing...
+                    </div>
+                    <div v-else-if="apiProcessed.response" class="text-green-600 flex">
+                        <div>
+                            {{apiProcessed.response}}
+                        </div>
+                        <svg v-on:click="clear" class="w-10 h-10 cursor-pointer hover:text-green-800 shrink-0" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21">
+                            <title>clear</title>
+                            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m7.5 7.5l6 6m0-6l-6 6"/>
+                        </svg>
+                    </div>
+                    <div v-else-if="apiProcessed.error" class="text-red-600 flex">
+                        <div>
+                            <div class="text-lg">
+                                {{apiProcessed.error.message}}
+                            </div>
+                        </div>
+                        <svg v-on:click="clear" class="w-10 h-10 cursor-pointer hover:text-green-800 shrink-0" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 21 21">
+                            <title>clear</title>
+                            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" d="m7.5 7.5l6 6m0-6l-6 6"/>
+                        </svg>
+                    </div>
+                    <div v-else-if="transcript" class="lowercase">
+                        <div class="pb-4">{{ transcript }}</div>
+                    </div>
+                    <div class="pr-20" v-else-if="loadingRecording">Initializing...</div>
+                    <div class="pr-20" v-else-if="isListening">Listening...</div>
+                    <div class="pr-20" v-else-if="isRecording">Speak Now</div>
+                </div>
+            </div>
+            <div class="lg:ml-8">
+                <record-button :loading="loadingRecording" :recording="isRecording" v-on:toggle="toggleRecording"></record-button>
+                <div class="relative mr-3">
+                    <close-button title="clear" v-if="apiProcessed.response || apiProcessed.error || transcript" v-on:click="clear"></close-button>
+                </div>
+            </div>
+            <div :class="['ml-4', audio ? '' : 'invisible']">
+                <play-button :playing="isPlaying" v-on:play="audio.play()" v-on:pause="audio.pause()"></play-button>
+            </div>
+        </div>
+        <div v-if="chatResult && !isSendingChat" class="mt-12">
+            <math-steps class="mx-auto max-w-screen-sm p-4 bg-gray-50 dark:bg-gray-900 rounded-md" :response="chatResult"></math-steps>
+        </div>
+    </div>
+</div>
+
+
+<script type="module">
+import { mount } from "/mjs/app.mjs"
+import { ref, computed, onMounted, shallowRef } from "vue"
+import { ApiResult, leftPart, rightPart, appendQueryString, omit, map, humanize } from "@@servicestack/client"
+import { Authenticate, CreateRecording, CreateMathChat } from "/mjs/dtos.mjs" 
+import { AudioRecorder } from "/mjs/AudioRecorder.mjs"
+import RecordButton from "/mjs/components/RecordButton.mjs"
+import PlayButton from "/mjs/components/PlayButton.mjs"
+import InputExamples from "/mjs/components/InputExamples.mjs"
+
+const [$func, $args, $ref] = ["@@func", "@@args", "@@ref"] 
+const Mock = {
+    transcribing: 1,
+    sendingChat: 1,
+    wait: 200,
+    recording: {
+        "transcript": "10 + 2 * 5 - 4",
+    },
+    chat: {
+      "stepResults": [10,10,20,20,6,6],
+      "result": 6,
+      "steps": [
+          {[$func]: "mul", [$args]: [2,5]},
+          {[$func]: "add", [$args]: [10, {[$ref]: 0}]},
+          {[$func]: "sub", [$args]: [{[$ref]: 1},4]}
+      ]
+  }
+}
+
+const MathSteps = {
+  template: /*html*/ `
+  <div class="p-4">
+    <h1 class="text-xl font-semibold mb-4">Calculation Details</h1>
+    
+    <h2 class="text-lg font-medium mb-2">Final Result</h2>
+    <div class="p-3 bg-white dark:bg-black rounded-md">
+      {{ result }}
+    </div>
+    
+    <h2 class="text-lg font-medium mt-4 mb-2">Working Steps</h2>
+    <ul class="mb-4">
+      <li v-for="(step, index) in prettySteps" :key="index" class="mb-2">
+        <div class="p-3 bg-white dark:bg-black rounded-md">
+          {{ step }}
+        </div>
+      </li>
+    </ul>
+  </div>
+`,
+  props: ["response"],
+  setup(props) {
+      const stepResults = ref(props.response.stepResults);
+      const result = ref(props.response.result);
+      const steps = ref(props.response.steps);
+
+      const prettySteps = computed(() => {
+          return steps.value.map((step, index) => {
+              const func = step[$func];
+              const args = step[$args].map(arg => {
+                  if (typeof arg === 'object' && arg[$ref] !== undefined) {
+                      return `Result[${arg[$ref]}] (${stepResults.value[arg[$ref]]})`;
+                  }
+                  return JSON.stringify(arg);
+              }).join(', ');
+
+              return `${func}(${args}) = ${stepResults.value[index]}`;
+          });
+      });
+
+      return { stepResults, result, prettySteps };
+  },
+}
+
+const App = {
+    components: {
+        RecordButton,
+        PlayButton,
+        InputExamples,
+        MathSteps,
+    },
+    setup() {
+        const txtInput = ref('')       
+        const isRecording = ref(false)
+        const loadingRecording = ref(false)
+        const isTranscribing = ref(false)
+        const isListening = ref(false)
+        const isSendingChat = ref(false)
+        let audioRecorder = new AudioRecorder()
+        window.audioRecorder = audioRecorder
+        const audio = ref()
+        const isPlaying = ref(false)
+        const transcript = ref('')
+        const apiChat = ref(new ApiResult())
+        const apiProcessed = ref(new ApiResult())
+        const chatResult = ref()
+        
+        const feature = 'math'
+        const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
+        
+        function clear() {
+            loadingRecording.value = false
+            isListening.value = false
+            isTranscribing.value = false
+            transcript.value = ''
+            apiProcessed.value = new ApiResult()
+            txtInput.value = ''
+            audio.value = null
+            chatResult.value = null
+        }
+        
+        async function toggleRecording() {
+            if (!navigator.mediaDevices?.getUserMedia) {
+                alert('getUserMedia() is not supported in your browser')
+                return
+            }
+            
+            clear()
+            if (!isRecording.value) {
+                audio.value = null
+                loadingRecording.value = true
+                await audioRecorder.start()
+                loadingRecording.value = false
+                isRecording.value = true
+                setTimeout(() => isListening.value = true, 2000)
+            } else {
+                isRecording.value = false
+                isTranscribing.value = true
+                audio.value = await audioRecorder.stop()
+                audio.value.addEventListener('playing', e => isPlaying.value = true)
+                audio.value.addEventListener('pause', e => isPlaying.value = false)
+                audio.value.addEventListener('ended', e => isPlaying.value = false)
+                
+                if (Mock.transcribing) {
+                    await timeout(Mock.wait)
+                    transcript.value = Mock.recording.transcript
+                } else {
+                    const formData = new FormData()
+                    formData.append('path', audioRecorder.audioBlob, `file.${audioRecorder.audioExt}`)
+                    console.time('transcribe')
+                    const api = await client.apiForm(new CreateRecording({feature}), formData)
+                    if (api.succeeded) {
+                        transcript.value = api.response.transcript
+                    }
+                    console.timeEnd('transcribe')
+                }
+                isTranscribing.value = false
+                await processRequest(transcript.value)
+            }
+        }        
+
+        async function onSubmit() {
+            const request = txtInput.value
+            clear()
+            txtInput.value = request
+            await processRequest(request)
+            txtInput.value = ''
+        }
+        
+        async function processRequest(request) {
+            if (!request || !request.trim()) return
+            
+            isSendingChat.value = true
+            if (Mock.sendingChat) {
+                await timeout(Mock.wait)
+                apiChat.value = new ApiResult({ response: Mock.chat })
+            } else {
+                console.time('gpt')
+                apiChat.value = await client.api(new CreateMathChat({
+                    userMessage: request.toLowerCase()
+                }))
+                console.timeEnd('gpt')
+            }
+            transcript.value = request
+            isSendingChat.value = false
+            if (apiChat.value.response) {
+                processChatResponse(apiChat.value.response)
+            } else if (apiChat.value.error) {
+                apiProcessed.value = apiChat.value
+            }
+        }
+        
+        function processChatResponse(response) {
+            console.log('processChatResponse', response)
+            chatResult.value = response
+        }
+
+        return {
+            txtInput,       
+            isRecording,
+            loadingRecording,
+            isTranscribing,
+            isListening,
+            isSendingChat,
+            audio,
+            isPlaying,
+            transcript,
+            apiChat,
+            apiProcessed,
+            chatResult,
+            clear,
+            onSubmit,
+            toggleRecording,
+        }
+    }
+}
+
+mount('#app', App)
+</script>

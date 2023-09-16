@@ -1,0 +1,686 @@
+﻿@page "/coffeeshop"
+@{
+    ViewData["Title"] = "CoffeeShop";
+    var categories = await base.Gateway.SendAsync(new QueryCategories());
+    var options = await base.Gateway.SendAsync(new QueryOptions());
+    var optionQuantities = await base.Gateway.SendAsync(new QueryOptionQuantities());
+}
+<style>
+.bg {
+    position: absolute;
+    width: 100%;
+    height: calc(100% - 850px);
+    left: 0;
+    top: 850px;
+    opacity: .05;
+    background-image: url('/img/bg.png');
+    background-repeat: repeat-x;
+    background-position: 50% 0;
+    z-index: -1;
+}
+</style>
+<div class="bg"></div>
+
+<div class="absolute top-16 right-4">
+    <a href="/coffeeshop/schema" class="text-indigo-600">schema.ts</a>
+    <a href="/coffeeshop/prompt?userMessage=i'd+like+a+latte+that's+it" class="ml-4 text-indigo-600">prompt</a>
+    <a href="https://github.com/NetCoreApps/CoffeeShop" class="ml-4 text-indigo-600">github</a>
+</div>
+
+<div class="container mx-auto">
+    <section class="flex-col md:flex-row flex items-center md:justify-between mt-16 mb-16 md:mb-12">
+        <div class="flex">
+            <a href="/coffeeshop">
+                <svg class="w-28 h-28 mr-6" xmlns="http://www.w3.org/2000/svg" width="256" height="206" viewBox="0 0 256 206"><path fill="#28334C" d="M101.614 9.071c.233 1.397-.466 2.562-2.794 3.726c-3.027-1.63-9.548-2.562-14.903-2.096c-5.822.466-10.712 2.329-10.013 6.287c.931 3.959 6.52 6.288 16.533 5.356c24.45-2.096 24.217-18.629 60.078-21.889c27.943-2.561 43.544 6.055 45.64 16.533c1.63 8.15-5.123 16.068-25.382 17.698c-17.93 1.63-28.409-3.26-29.34-8.15c-.466-2.562.931-6.288 9.547-7.219c.932 3.959 5.822 8.15 17.465 6.986c8.383-.699 15.368-3.726 14.437-8.383c-.931-4.89-9.78-7.685-23.752-6.52c-28.409 2.561-35.394 18.163-59.612 20.259C82.287 33.289 68.315 27 66.452 17.687c-.698-3.493-.698-11.643 17.465-13.273c9.314-.699 16.766.931 17.697 4.657Zm-90.815 97.336C2.882 116.42-.611 128.062.087 139.473c.699 11.41 6.287 20.724 15.136 27.943c9.314 7.218 19.327 9.314 30.738 7.218c4.424-.698 9.314-3.027 13.738-4.424c-9.314 0-17.231-3.027-25.149-9.314c-8.615-6.288-14.437-15.136-15.834-25.848c-2.096-10.013 0-19.327 5.589-27.477c6.287-7.917 14.437-12.342 25.148-13.739c10.712-.698 20.026 2.096 29.34 8.616c-2.095-3.027-5.122-5.123-7.916-7.917c-9.315-6.288-19.328-9.315-31.67-6.288c-11.177 2.33-20.491 8.15-28.408 18.164Zm124.813-53.791c-30.04 0-56.818-3.027-76.146-7.219c-20.724-5.123-31.669-10.711-31.669-17.93c0-3.027 1.398-5.589 5.59-8.616c-13.041 5.123-20.027 9.315-20.027 15.835c.699 7.218 12.342 14.437 36.093 20.026c22.355 5.588 50.997 8.615 85.46 8.615c35.162 0 63.105-3.027 85.46-8.615c23.751-5.589 35.161-13.04 35.161-20.026c0-5.123-5.123-10.013-14.437-13.739c2.096 1.397 3.726 3.726 3.726 6.287c0 7.219-10.712 13.04-32.368 17.93c-20.026 4.425-45.64 7.452-76.843 7.452Zm85.692 20.026c-22.355 5.123-50.996 8.616-85.46 8.616c-35.161 0-63.803-3.726-86.158-8.616C29.66 67.519 18.95 61.93 15.223 56.109c3.726 25.149 12.342 48.9 23.752 69.858c8.616 13.04 17.231 24.45 25.847 36.792c3.726 7.218 6.287 14.437 7.917 21.656c5.589 7.917 13.74 13.04 23.752 15.834c12.342 4.424 25.149 6.287 38.19 5.589h1.396c13.04.698 26.78-1.398 39.354-5.589c9.314-3.027 17.231-7.917 23.053-15.834h.698c1.397-7.22 3.726-14.438 7.219-21.656c8.616-12.342 17.232-23.752 25.847-36.792c11.41-20.725 19.328-44.476 23.752-69.858c-4.657 6.52-15.369 12.109-34.696 16.533Z"/></svg>
+            </a>
+            <h1 class="text-6xl md:text-8xl font-bold tracking-tighter leading-tight">CoffeeShop TypeChat</h1>
+        </div>
+    </section>
+</div>
+
+<div id="app" class="container mx-auto w-full bg-white">
+    <div class="flex justify-between w-full">
+        <div class="pl-4 pt-12 mt-2 w-40">
+            @foreach (var category in categories.Results)
+            {
+                <a href="#@category.Name" class="block mb-8 cursor-pointer hover:text-indigo-600">
+                    <img src="@category.ImageUrl" alt="" class="w-12 h-12 lg:w-16 lg:h-16 rounded-full object-cover">
+                    <span class="block mt-2 select-none text-sm lg:text-base">
+                        @category.Description
+                    </span>
+                </a>
+            }
+        </div>
+        <div v-cloak class="flex-grow">
+            <div v-if="activeCategory" class="mb-4 lg:text-xl select-none">
+                <a href="/coffeeshop">Menu</a> /
+                <a :href="`#${activeCategory.name}`" :class="{ 'font-semibold':!activeProduct }">{{activeCategory.description}}</a>
+                <span v-if="activeProduct" class="font-semibold"> / {{activeProduct.name}}</span>
+            </div>
+            <div v-if="activeProduct">
+                <div class="p-8 bg-stone-50 rounded-md">
+                    <div class="flex items-center">
+                        <img :src="activeProduct.imageUrl" alt="" class="w-24 h-24 lg:w-40 lg:h-40 object-cover">
+                        <div class="ml-8 text-2xl lg:text-4xl">
+                            <div>{{activeProduct.name}}</div>
+                            <div class="pt-2" v-html="currency(activeProduct.cost)"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap">
+                    <div v-if="activeCategory.sizes || activeCategory.temperatures" class="w-full lg:w-1/2">
+                        <div class="pl-8">
+                            <div class="pt-8 pr-8" v-if="activeCategory.sizes">
+                                <h3 class="lg:text-2xl border-b pb-2 mb-4">Size Options</h3>
+                                <fieldset class="mt-2">
+                                    <legend class="sr-only">Choose a Size preference</legend>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-1 sm:gap-3">
+                                        <label v-for="size in activeCategory.sizes"
+                                               :class="['flex items-center justify-center whitespace-nowrap rounded-md py-3 px-3 text-sm font-semibold uppercase sm:flex-1 cursor-pointer focus:outline-none',
+                                                      size == orderItem.size ? 'ring-2 ring-indigo-600 ring-offset-2 bg-indigo-600 text-white hover:bg-indigo-500' : 'ring-1 ring-inset ring-gray-300 bg-white text-gray-900 hover:bg-gray-50']">
+                                            <input v-model="orderItem.size" type="radio" name="temperature" :value="size" class="sr-only">
+                                            <span>{{size}}</span>
+                                        </label>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <div class="pt-8 pr-8" v-if="activeCategory.temperatures">
+                                <h3 class="lg:text-2xl border-b pb-2 mb-4">Temperature preference</h3>
+                                <fieldset class="mt-2">
+                                    <legend class="sr-only">Choose a Temperature preference</legend>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-1 sm:gap-3">
+                                        <label v-for="temp in activeCategory.temperatures"
+                                               :class="['flex items-center justify-center whitespace-nowrap rounded-md py-3 px-3 text-sm font-semibold uppercase sm:flex-1 cursor-pointer focus:outline-none',
+                                                      temp == orderItem.temperature ? 'ring-2 ring-red-600 ring-offset-2 bg-red-600 text-white hover:bg-red-500' : 'ring-1 ring-inset ring-gray-300 bg-white text-gray-900 hover:bg-gray-50']">
+                                            <input v-model="orderItem.temperature" type="radio" name="temperature" :value="temp" class="sr-only">
+                                            <span>{{temp}}</span>
+                                        </label>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full lg:w-1/2">
+                        <div v-if="productOptions.length" class="pl-8 pt-8">
+                            <h3 class="lg:text-2xl border-b pb-2 mb-4">Customize</h3>
+                            <div v-for="option in productOptions" class="pb-8 flex max-w-xs">
+                                <div class="">
+                                    <label for="">{{humanize(option.type)}}</label>
+                                    <select-input class="w-60 flex-grow" v-model="orderItem.options[option.type]" :values="['',...option.names]"></select-input>
+                                </div>
+                                <div v-if="option.allowQuantity && option.quantityLabel" class="ml-4 select-none">
+                                    <label for="">{{option.quantityLabel}}</label>
+                                    <div class="h-12 flex items-center">
+                                        <svg v-on:click="orderItem.optionSizes[option.type] = Math.max((orderItem.optionSizes[option.type] ?? 1)-1,0)" class="w-6 h-6 align-middle cursor-pointer text-gray-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 20c-4.41 0-8-3.59-8-8s3.59-8 8-8s8 3.59 8 8s-3.59 8-8 8m0-18A10 10 0 0 0 2 12a10 10 0 0 0 10 10a10 10 0 0 0 10-10A10 10 0 0 0 12 2M7 13h10v-2H7"></path></svg>
+                                        <span class="w-6 text-center font-semibold text-gray-600">{{ orderItem.optionSizes[option.type] ?? 1 }}</span>
+                                        <svg v-on:click="orderItem.optionSizes[option.type] = (orderItem.optionSizes[option.type] ?? 1) + 1" class="w-6 h-6 align-middle cursor-pointer text-gray-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-3h3.025q.425 0 .7-.288T17 12q0-.425-.288-.713T16 11h-3V7.975q0-.425-.288-.7T12 7q-.425 0-.713.288T11 8v3H7.975q-.425 0-.7.288T7 12q0 .425.288.713T8 13h3v3.025q0 .425.288.7T12 17Zm0 5q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22Zm0-10Zm0 8q3.325 0 5.663-2.337T20 12q0-3.325-2.337-5.663T12 4Q8.675 4 6.337 6.337T4 12q0 3.325 2.337 5.663T12 20Z"></path></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div v-if="modifyingExistingItem" class="p-8 flex justify-end items-center">
+                    <text-link v-on:click="doneEditCartItem(false)" class="text-lg pr-4">cancel</text-link>
+                    <button v-on:click="doneEditCartItem(true)" type="button" class="rounded-full bg-green-600 px-4 py-2.5 text-lg font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">
+                        Save Order
+                    </button>
+                </div>
+                <div v-else class="p-8 flex justify-end items-center">
+                    <text-link v-on:click="reset" class="text-lg pr-4">reset</text-link>
+                    <button v-on:click="addToOrder(map(orderItem, x => { x.product = activeProduct.name; return x }))" type="button" class="rounded-full bg-green-600 px-4 py-2.5 text-lg font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">
+                        Add to Order
+                    </button>
+                </div>
+            </div>
+            <div v-else-if="activeCategory" class="mt-8 grid grid-cols-2 lg:grid-cols-3">
+                <a v-for="product in activeCategory.products" :href="`#${activeCategory.name}/${product.name}`" class="block mb-8 flex flex-col items-center">
+                    <img :src="product.imageUrl" alt="" class="w-16 h-16 lg:w-28 lg:h-28 rounded-full object-cover">
+                    <span class="block mt-2 lg:text-lg font-medium">
+                        {{product.name}}
+                    </span>
+                </a>
+            </div>
+            <div v-else class="mt-20">
+                <div class="mx-auto max-w-screen-sm flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-end">
+                    <div class="mb-8 lg:mb-0 w-full lg:w-auto">
+                        <form v-if="!(loadingRecording || isRecording || isTranscribing || transcript)" v-on:submit.prevent="onSubmit">
+                            <text-input v-model="txtInput" :disabled="isSendingChat" class="w-full lg:w-96 text-2xl" placeholder="What can we get for you today?"></text-input>
+                            <input-examples :loading="isSendingChat" v-model="txtInput" v-on:change="onSubmit" class="mt-2">
+                                <pre>
+                                i'd like a latte that's it
+                                i'll have a dark roast coffee thank you
+                                get me a coffee please
+                                could i please get two mochas that's all
+                                we need twenty five flat whites and that'll do it
+                                how about a tall cappuccino
+                                i'd like a iced venti latte
+                                we'll also have a short tall latte
+                                i wanna latte macchiato with vanilla
+                                how about a peppermint latte
+                                may i also get a decaf soy vanilla syrup caramel latte with sugar and foam
+                                i want a latte with peppermint syrup with peppermint syrup
+                                can I get a skim soy latte
+                                i'd like a light nutmeg espresso that's it
+                                can i have an cappuccino no foam
+                                can i have an espresso with no nutmeg
+                                we want a light whipped no foam mocha with extra hazelnut and cinnamon
+                                i'd like a strawberry latte
+                                i want a flat white with five pumps of caramel syrup
+                                i want a two pump peppermint three squirt raspberry skinny vanilla latte with a pump of caramel and two sugars
+                                i want a latte cappuccino espresso and an apple muffin
+                                i'd like a tall decaf latte iced a grande cappuccino double espresso and a warmed poppyseed muffin sliced in half
+                                we'd like a latte with soy and a coffee with soy
+                                i want a latte latte macchiato and a chai latte
+                                we'd like a cappuccino with two pumps of vanilla
+                                i'd like a flat white with two equal
+                                add three equal to the flat white
+                                two tall lattes. the first one with no foam. the second one with whole milk.
+                                two tall lattes. the first one with no foam. the second one with whole milk. actually make the first one a grande.
+                                </pre>
+                            </input-examples>
+                        </form>
+                        <div class="mt-2 text-2xl text-gray-600">
+                            <div v-if="isTranscribing" class="pr-20 flex items-center">
+                                <loading></loading>
+                                Transcribing...
+                            </div>
+                            <div v-else-if="apiProcessed.response" class="text-green-600 flex">
+                                <div>
+                                    {{apiProcessed.response}}
+                                    <div v-if="unknownItems.length" class="text-left text-sm text-red-600">
+                                        <h4 class="text-lg">We couldn't understand part of your order</h4>
+                                        <ul class="list-disc text-sm">
+                                            <li class="ml-6" v-for="item in unknownItems">{{item}}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else-if="apiProcessed.error" class="text-red-600 flex">
+                                <div>
+                                    <div class="text-lg">
+                                        {{apiProcessed.error.message}}
+                                    </div>
+                                    <div v-if="unknownItems.length" class="text-left text-sm text-red-600">
+                                        <ul class="list-disc text-sm">
+                                            <li class="ml-6" v-for="item in unknownItems">{{item}}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else-if="transcript" class="lowercase">
+                                <div class="pb-4">{{ transcript }}</div>
+                            </div>
+                            <div class="pr-20" v-else-if="loadingRecording">Initializing...</div>
+                            <div class="pr-20" v-else-if="isListening">Listening...</div>
+                            <div class="pr-20" v-else-if="isRecording">Speak Now</div>
+                        </div>
+                    </div>
+                    <div class="lg:ml-8">
+                        <record-button :loading="loadingRecording" :recording="isRecording" v-on:toggle="toggleRecording"></record-button>
+                        <div class="relative mr-3">
+                            <close-button title="clear" v-if="apiProcessed.response || apiProcessed.error || transcript" v-on:click="clear"></close-button>
+                        </div>
+                    </div>
+                    <div :class="['ml-4', audio ? '' : 'invisible']">
+                        <play-button :playing="isPlaying" v-on:play="audio.play()" v-on:pause="audio.pause()"></play-button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 mx-auto max-w-screen-sm text-2xl">
+                <div v-if="!apiProcessed.completed && isSendingChat" class="text-gray-600 flex items-center justify-center">
+                    <loading></loading>
+                    Processing Order...
+                </div>
+            </div>
+        </div>
+        <div v-if="showCart" v-cloak class="ml-4 w-80 bg-white lg:relative absolute right-0 p-4 pl-8 lg:pl-0 rounded shadow lg:shadow-none">
+            <div v-if="cartItems.length">
+                <div v-cloak class="mb-4 text-xl select-none font-medium flex justify-between items-start">
+                    <span>Cart</span>
+                    <close-button v-on:click="showCart=false" class="lg:pt-0 lg:pr-0"></close-button>
+                </div>
+                <div v-for="item in cartItems" class="shadow rounded p-4 mb-4">
+                    <div class="flex">
+                        <div>
+                            <img :src="productsMap[item.product].imageUrl" alt="" class="w-12 h-12 lg:w-16 lg:h-16 rounded-full object-cover">
+                        </div>
+                        <div class="ml-4">
+                            <div class="">
+                                <span class="lg:text-lg font-semibold">{{productsMap[item.product].name}}</span>
+                                <div class="flex mt-1">
+                                    <div v-if="item.size" class="mr-2">
+                                        <span class="inline-flex items-center rounded-full bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">{{item.size}}</span>
+                                    </div>
+                                    <div v-if="item.temperature">
+                                        <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">{{item.temperature}}</span>
+                                    </div>
+                                </div>
+                                <div class="pt-4">
+                                    <ul v-if="itemOptions(item).length">
+                                        <li v-for="option in itemOptions(item)">
+                                            {{map(option.size, x => x === 0 ? 'No ' : x === .5 ? '1/2' : `${x}x `) || '' }} {{option.name}}
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="pt-4 flex">
+                                    <svg class="mr-2 w-6 h-6 align-middle cursor-pointer text-gray-500 hover:text-gray-600" v-on:click="editCartItem(item)" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"> <title>Modify Item</title> <path fill="currentColor" d="M16.293 2.293a1 1 0 0 1 1.414 0l4 4a1 1 0 0 1 0 1.414l-13 13A1 1 0 0 1 8 21H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 .293-.707l10-10l3-3zM14 7.414l-9 9V19h2.586l9-9L14 7.414zm4 1.172L19.586 7L17 4.414L15.414 6L18 8.586z"/></svg>
+                                    <svg class="mr-2 w-6 h-6 align-middle cursor-pointer text-gray-500 hover:text-gray-600" v-on:click="removeCartItem(item)" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"> <title>Remove Item</title> <path fill="currentColor" d="M12 20c-4.41 0-8-3.59-8-8s3.59-8 8-8s8 3.59 8 8s-3.59 8-8 8m0-18A10 10 0 0 0 2 12a10 10 0 0 0 10 10a10 10 0 0 0 10-10A10 10 0 0 0 12 2M7 13h10v-2H7"></path></svg>
+                                    <svg class="mr-2 w-6 h-6 align-middle cursor-pointer text-gray-500 hover:text-gray-600" v-on:click="duplicateCartItem(item)" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"> <title>Duplicate Item</title> <path fill="currentColor" d="M12 17q.425 0 .713-.288T13 16v-3h3.025q.425 0 .7-.288T17 12q0-.425-.288-.713T16 11h-3V7.975q0-.425-.288-.7T12 7q-.425 0-.713.288T11 8v3H7.975q-.425 0-.7.288T7 12q0 .425.288.713T8 13h3v3.025q0 .425.288.7T12 17Zm0 5q-2.075 0-3.9-.788t-3.175-2.137q-1.35-1.35-2.137-3.175T2 12q0-2.075.788-3.9t2.137-3.175q1.35-1.35 3.175-2.137T12 2q2.075 0 3.9.788t3.175 2.137q1.35 1.35 2.138 3.175T22 12q0 2.075-.788 3.9t-2.137 3.175q-1.35 1.35-3.175 2.138T12 22Zm0-10Zm0 8q3.325 0 5.663-2.337T20 12q0-3.325-2.337-5.663T12 4Q8.675 4 6.337 6.337T4 12q0 3.325 2.337 5.663T12 20Z"></path></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-4 flex justify-end">
+                    <primary-button v-on:click="emptyCart" color="red">Empty Cart</primary-button>
+                </div>
+            </div>
+        </div>
+        <div v-cloak v-else-if="cartItems.length" class="-mt-20 absolute right-4">
+            <button v-on:click="showCart=true" type="button" class="relative rounded-full bg-white p-4 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                <svg class="w-6 h-6 text-gray-700" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="currentColor" d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .49.598l-1 5a.5.5 0 0 1-.465.401l-9.397.472L4.415 11H13a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.491-.408L2.01 3.607L1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l.84 4.479l9.144-.459L13.89 4H3.102zM5 12a2 2 0 1 0 0 4a2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4a2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2a1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2a1 1 0 0 1 0-2z"/></svg>
+                <div class="absolute inline-flex items-center justify-center w-6 h-6 text-xs font-bold text-white bg-red-500 border-2 border-white rounded-full -top-2 -right-2 dark:border-gray-900">{{cartItems.length}}</div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { mount } from "/mjs/app.mjs"
+import { ref, computed, onMounted, shallowRef } from "vue"
+import { ApiResult, leftPart, rightPart, appendQueryString, omit, map, humanize } from "@@servicestack/client"
+import { useAuth, useFormatters } from "@@servicestack/vue"
+import { QueryOptions, Authenticate, CreateRecording, CreateChat } from "/mjs/dtos.mjs" 
+import { AudioRecorder } from "/mjs/AudioRecorder.mjs"
+import RecordButton from "/mjs/components/RecordButton.mjs"
+import PlayButton from "/mjs/components/PlayButton.mjs"
+import InputExamples from "/mjs/components/InputExamples.mjs"
+
+const Mock = {
+    transcribing: 1,
+    sendingChat: 1,
+    wait: 200,
+    recording: {
+        "transcript": "may i get a decaf soy vanilla syrup caramel latte with sugar and foam",
+    },
+    chat: {
+        "chatResponse": '{"items":[{"type":"lineitem","product":{"type":"LatteDrinks","name":"latte","options":[{"type":"Caffeines","name":"decaf"},{"type":"Milks","name":"soy milk"},{"type":"Syrups","name":"vanilla syrup","optionQuantity":"regular"},{"type":"Syrups","name":"caramel syrup","optionQuantity":"regular"},{"type":"Toppings","name":"foam","optionQuantity":"regular"}]},"quantity":1}]}',
+    }
+}
+
+const categories = @Html.Raw(categories.Results.ToJson())
+const options = @Html.Raw(options.Results.ToJson())
+const optionQuantities = @Html.Raw(optionQuantities.Results.ToJson())
+const products = categories.flatMap(x => x.products)
+const productsMap = {}
+categories.forEach(c => c.products.forEach(p => productsMap[p.name] = p))
+
+const App = {
+    components: {
+        RecordButton,
+        PlayButton,
+        InputExamples,
+    },
+    setup() {
+        const { user, signIn } = useAuth()
+        const { currency } = useFormatters()
+        const init = ref(false)
+        const refreshKey = ref(1)
+        const getCategory = () => leftPart(rightPart(leftPart(location.hash,'?'), '#'), '/')
+        const getProduct = () => map(rightPart(rightPart(leftPart(location.hash,'?'), '#'), '/'), x => decodeURIComponent(x))
+        const activeCategory = shallowRef(categories.find(x => x.name === getCategory()))
+        const activeProduct = shallowRef(categories.flatMap(x => x.products).find(x => x.name === getProduct()))
+        const categoryOptions = ref()
+        const productOptions = computed(() => (categoryOptions.value && activeCategory.value 
+            ? categoryOptions.value.filter(x => activeCategory.value.categoryOptions?.some(y => y.optionId === x.id)) : null) || [])
+        const showCart = ref(false)
+        const cart = ref()
+        const cartItems = computed(() => cart.value && cart.value.items || [])
+        const orderItem = ref(createOrderItem(activeCategory.value))
+        const modifyingExistingItem = computed(() => cartItems.value.some(x => x === orderItem.value))
+        const txtInput = ref('')       
+        const isRecording = ref(false)
+        const loadingRecording = ref(false)
+        const isTranscribing = ref(false)
+        const isListening = ref(false)
+        const isSendingChat = ref(false)
+        let audioRecorder = new AudioRecorder()
+        window.audioRecorder = audioRecorder
+        const audio = ref()
+        const isPlaying = ref(false)
+        const transcript = ref('')
+        const apiChat = ref(new ApiResult())
+        const apiProcessed = ref(new ApiResult())
+        const unknownItems = ref([])
+        const feature = 'coffeeshop'
+        
+        function navTo(category, args={}, pushState=true) {
+            console.log('navTo', category, args, pushState)
+            if (!args) args = {}
+            refreshKey.value++
+            activeCategory.value = categories.find(x => x.name === category)
+            activeProduct.value = categories.flatMap(x => x.products).find(x => x.name === args.product)
+            orderItem.value = createOrderItem(activeCategory.value)
+            if (pushState) {
+                history.pushState({ category, ...args }, null, 
+                    appendQueryString(`#${category}` + (args.product ? `/${args.product}` : ''), omit(args,['product'])))
+            }
+        }
+        
+        function createOrderItem(category) {
+            return map(category, c => ({
+                    size:c.defaultSize||'', 
+                    temperature:c.defaultTemperature||'', 
+                    options:{}, optionSizes:{} 
+                })) 
+                || { options:{}, optionSizes:{} }
+        }
+        
+        function sanitizeItem(item) {
+            const options = {}
+            const optionSizes = {}
+            itemOptions(item).forEach(option => {
+                options[option.category] = option.name
+                optionSizes[option.category] = option.size
+            })            
+            return Object.assign({}, item, { options, optionSizes })
+        }
+        
+        function addToOrder(item) {
+            if (!cart.value || !cart.value.items) {
+                cart.value = { items:[] }
+            }
+            
+            cart.value.items.push(sanitizeItem(item))
+            saveCart()
+            reset()
+            showCart.value = true
+        }
+        
+        function itemOptions(item) {
+            const results = []
+            Object.keys(item.options).forEach(category => {
+                const name = item.options[category]
+                if (!name) return
+                const size = item.optionSizes[category] ?? 1
+                const to = { category, name, size }
+                results.push(to)
+            })
+            return results
+        }
+        
+        function reset() {
+            orderItem.value = createOrderItem(activeCategory.value)
+            saveCart()
+        }
+        function saveCart() {
+            if (cartItems.value.length) {
+                localStorage.setItem('cart', JSON.stringify(cart.value))
+            } else {
+                localStorage.removeItem('cart')
+            }
+        }
+        function editCartItem(item) {
+            const product = productsMap[item.product]
+            const category = categories.find(x => x.id === product.categoryId)
+            showCart.value = false
+            navTo(category.name, { product:product.name })
+            orderItem.value = item
+        }
+        function removeCartItem(item) {
+            cart.value.items = cart.value.items.filter(x => x !== item)
+            saveCart() 
+        }
+        function duplicateCartItem(item) {
+            const pos = cart.value.items.findIndex(x => x === item)
+            cart.value.items.splice(pos, 0, Object.assign({}, item))
+            saveCart() 
+        }
+        function doneEditCartItem(save) {
+            if (save) {
+                saveCart()
+            } else {
+                // reload cart from last save
+                cart.value = map(localStorage.getItem('cart'), x => JSON.parse(x)) || null
+            }
+            reset()
+            navTo(null)
+        }
+        function emptyCart() {
+            cart.value = { items:[] }
+            showCart.value = false
+            localStorage.removeItem('cart')
+        }
+        
+        const timeout = ms => new Promise(resolve => setTimeout(resolve, ms))
+        
+        function clear() {
+            loadingRecording.value = false
+            isListening.value = false
+            isTranscribing.value = false
+            transcript.value = ''
+            apiProcessed.value = new ApiResult()
+            txtInput.value = ''
+            audio.value = null
+        }
+        
+        async function toggleRecording() {
+            if (!navigator.mediaDevices?.getUserMedia) {
+                alert('getUserMedia() is not supported in your browser')
+                return
+            }
+            
+            clear()
+            if (!isRecording.value) {
+                audio.value = null
+                loadingRecording.value = true
+                await audioRecorder.start()
+                loadingRecording.value = false
+                isRecording.value = true
+                setTimeout(() => isListening.value = true, 2000)
+            } else {
+                isRecording.value = false
+                isTranscribing.value = true
+                audio.value = await audioRecorder.stop()
+                audio.value.addEventListener('playing', e => isPlaying.value = true)
+                audio.value.addEventListener('pause', e => isPlaying.value = false)
+                audio.value.addEventListener('ended', e => isPlaying.value = false)
+                
+                if (Mock.transcribing) {
+                    await timeout(Mock.wait)
+                    transcript.value = Mock.recording.transcript
+                } else {
+                    const formData = new FormData()
+                    formData.append('path', audioRecorder.audioBlob, `file.${audioRecorder.audioExt}`)
+                    console.time('transcribe')
+                    const api = await client.apiForm(new CreateRecording({ feature }), formData)
+                    if (api.succeeded) {
+                        transcript.value = api.response.transcript
+                    }
+                    console.timeEnd('transcribe')
+                }
+                isTranscribing.value = false
+                await processRequest(transcript.value)
+            }
+        }
+        
+        async function onSubmit() {
+            const request = txtInput.value
+            clear()
+            txtInput.value = request
+            await processRequest(request)
+            txtInput.value = ''
+        }
+        
+        async function processRequest(request) {
+            if (!request || !request.trim()) return
+            
+            isSendingChat.value = true
+            if (Mock.sendingChat) {
+                await timeout(Mock.wait)
+                apiChat.value = new ApiResult({ response: Mock.chat })
+            } else {
+                console.time('gpt')
+                apiChat.value = await client.api(new CreateChat({ feature, userMessage: request.toLowerCase() }))
+                console.timeEnd('gpt')
+            }
+            isSendingChat.value = false
+            if (apiChat.value.response) {
+                processChatItems(JSON.parse(apiChat.value.response.chatResponse).items)
+            } else if (apiChat.value.error) {
+                apiProcessed.value = apiChat.value
+            }
+        }
+        
+        function processChatItems(items) {
+            console.log('processChatResponse', items)
+            const addedProducts = []
+            unknownItems.value = []
+            console.log('options', options)
+            items.forEach(item => {
+                console.log(item)
+                if (item.type.toLowerCase() !== "lineitem") {
+                    unknownItems.value.push(`Unknown LineItem ${item.type}: ${item.text}`)
+                    return
+                }
+                const productLower = item.product?.name?.toLowerCase() ?? ''
+                const product = products.find(x => x.name.toLowerCase() === productLower)
+                if (!product) {
+                    unknownItems.value.push(`Unknown Product '${productLower}'`)
+                    return
+                }
+                const category = categories.find(x => x.id === product.categoryId)
+                const categoryOptions = category.categoryOptions?.map(x => options.find(o => o.id === x.optionId)) ?? []
+                const orderItem = createOrderItem(category)
+                orderItem.product = product.name
+                const temperature = !category.temperatures || !item.product?.temperature
+                    ? null
+                    : category.temperatures.find(x => x.toLowerCase() === item.product?.temperature.toLowerCase())
+                if (temperature) {
+                    orderItem.temperature = temperature
+                }
+                const size = !category.sizes || !item.product?.size
+                    ? null
+                    : category.sizes.find(x => x.toLowerCase() === item.product?.size.toLowerCase())
+                if (size) {
+                    orderItem.size = size
+                }
+                
+                console.log('category', category)
+                console.log('categoryOptions', categoryOptions)
+                console.log('temperature', temperature)
+                console.log('size', size)
+                
+                ;(item.product?.options || []).forEach(itemOption => {
+                    const option = categoryOptions.find(x => x.type.toLowerCase() === itemOption.type.toLowerCase())
+                    if (!option) {
+                        unknownItems.value.push(`Unknown option '${itemOption.type}' for category '${category.name}'`)
+                        return
+                    }
+                    const optionName = option.names.find(x => x.toLowerCase() === itemOption.name)
+                    if (!optionName) {
+                        unknownItems.value.push(`Unknown option name '${itemOption.name}' for option '${option.type}'`)
+                        return
+                    }
+                    orderItem.options[option.type] = optionName
+                    const optionQuantity = Number.isFinite(itemOption.optionQuantity)
+                        ? (Number.isInteger(itemOption.optionQuantity)
+                            ? parseInt(itemOption.optionQuantity)
+                            : parseFloat(itemOption.optionQuantity))
+                        : optionQuantities.find(x => x.name.toLowerCase() === itemOption.optionQuantity)?.value ?? 1
+                    orderItem.optionSizes[option.type] = optionQuantity
+                })
+                
+                const quantity = !isNaN(item.quantity) 
+                    ? item.quantity
+                    : 1
+                
+                for (let i = 0; i<quantity; i++) {
+                    console.log('orderItem', orderItem)
+                    addToOrder(orderItem)
+                    if (!addedProducts.includes(orderItem.product)) {
+                        addedProducts.push(orderItem.product)
+                    }
+                }
+            })
+            
+            if (unknownItems.value.length) {
+                console.log(`Unknown Items:`)
+                unknownItems.value.map(x => console.log(' - ' + x))
+            }
+            
+            if (addedProducts.length > 0) {
+                const productsList = addedProducts.length === 1
+                    ? addedProducts[0]
+                    : (addedProducts.slice(0, addedProducts.length - 1).join(', ') + " and " + addedProducts[addedProducts.length - 1])
+                
+                apiProcessed.value = new ApiResult({ response: `Your ${productsList} order was added to your cart` })
+            } else {
+                apiProcessed.value = new ApiResult({ error: { message: `I'm sorry we could not understand your order` } })
+            }
+        }
+
+        onMounted(async () => {
+            cart.value = map(localStorage.getItem('cart'), x => JSON.parse(x)) || null
+            showCart.value = cart.value?.items?.length > 0 
+            
+            window.addEventListener('popstate', event => {
+                navTo(event.state?.category || getCategory(), { product:event.state?.product || getProduct() }, false)
+            })
+            
+            categoryOptions.value = (await client.api(new QueryOptions())).response.results
+            
+            const api = await client.api(new Authenticate())
+            if (api.succeeded) {
+                signIn(api.response)
+            }
+            init.value = true
+        })
+
+        return {
+            categories,
+            productsMap,
+            refreshKey,
+            categoryOptions,
+            productOptions,
+            activeCategory,
+            activeProduct,
+            currency,
+            showCart,
+            cart,
+            cartItems,
+            orderItem,
+            modifyingExistingItem,
+            txtInput,
+            onSubmit,
+            doneEditCartItem,
+            itemOptions,
+            map,
+            omit,
+            humanize,
+            addToOrder,
+            reset,
+            emptyCart,
+            editCartItem,
+            removeCartItem,
+            duplicateCartItem,
+            loadingRecording,
+            isRecording,
+            isListening,
+            isTranscribing,
+            isSendingChat,
+            toggleRecording,
+            clear,
+            audio,
+            audioRecorder,
+            isPlaying,
+            transcript,
+            apiChat,
+            apiProcessed,
+            unknownItems,
+        }
+    }
+}
+mount('#app',App)
+</script>

@@ -1,0 +1,172 @@
+﻿@page
+@model IndexModel
+
+<div class="container mx-auto px-5">
+    <section class="flex-col md:flex-row flex items-center md:justify-between mt-16 mb-16 md:mb-12">
+        <h1 class="text-6xl md:text-8xl font-bold tracking-tighter leading-tight md:pr-8">TypeChat Examples</h1>
+    </section>
+</div>
+
+<section>
+    <div class="mx-auto max-w-screen-lg py-8 sm:py-16">
+        <div class="text-center">
+            <h2 class="py-2 text-3xl font-bold text-gray-900 dark:text-gray-100 sm:text-4xl">
+                TypeChat's Natural Language Interfaces in .NET
+            </h2>
+            <p class="py-2 text-lg text-gray-500 dark:text-gray-400">
+                Using TypeChat's TypeScript Schema approach to build LLM powered AI features in .NET 
+            </p>
+        </div>
+      </div>
+</section>
+
+<div class="mx-auto max-w-screen-lg divide-y divide-gray-200 overflow-hidden rounded-lg bg-gray-200 shadow sm:grid sm:grid-cols-2 sm:gap-px sm:divide-y-0">
+  <div class="rounded-tl-lg rounded-tr-lg sm:rounded-tr-none group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+    <div>
+      <span class="inline-flex rounded-lg p-3 bg-indigo-50 text-indigo-700 ring-4 ring-white">
+        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" width="256" height="206" viewBox="0 0 256 206"><path fill="currentColor" d="M101.614 9.071c.233 1.397-.466 2.562-2.794 3.726c-3.027-1.63-9.548-2.562-14.903-2.096c-5.822.466-10.712 2.329-10.013 6.287c.931 3.959 6.52 6.288 16.533 5.356c24.45-2.096 24.217-18.629 60.078-21.889c27.943-2.561 43.544 6.055 45.64 16.533c1.63 8.15-5.123 16.068-25.382 17.698c-17.93 1.63-28.409-3.26-29.34-8.15c-.466-2.562.931-6.288 9.547-7.219c.932 3.959 5.822 8.15 17.465 6.986c8.383-.699 15.368-3.726 14.437-8.383c-.931-4.89-9.78-7.685-23.752-6.52c-28.409 2.561-35.394 18.163-59.612 20.259C82.287 33.289 68.315 27 66.452 17.687c-.698-3.493-.698-11.643 17.465-13.273c9.314-.699 16.766.931 17.697 4.657Zm-90.815 97.336C2.882 116.42-.611 128.062.087 139.473c.699 11.41 6.287 20.724 15.136 27.943c9.314 7.218 19.327 9.314 30.738 7.218c4.424-.698 9.314-3.027 13.738-4.424c-9.314 0-17.231-3.027-25.149-9.314c-8.615-6.288-14.437-15.136-15.834-25.848c-2.096-10.013 0-19.327 5.589-27.477c6.287-7.917 14.437-12.342 25.148-13.739c10.712-.698 20.026 2.096 29.34 8.616c-2.095-3.027-5.122-5.123-7.916-7.917c-9.315-6.288-19.328-9.315-31.67-6.288c-11.177 2.33-20.491 8.15-28.408 18.164Zm124.813-53.791c-30.04 0-56.818-3.027-76.146-7.219c-20.724-5.123-31.669-10.711-31.669-17.93c0-3.027 1.398-5.589 5.59-8.616c-13.041 5.123-20.027 9.315-20.027 15.835c.699 7.218 12.342 14.437 36.093 20.026c22.355 5.588 50.997 8.615 85.46 8.615c35.162 0 63.105-3.027 85.46-8.615c23.751-5.589 35.161-13.04 35.161-20.026c0-5.123-5.123-10.013-14.437-13.739c2.096 1.397 3.726 3.726 3.726 6.287c0 7.219-10.712 13.04-32.368 17.93c-20.026 4.425-45.64 7.452-76.843 7.452Zm85.692 20.026c-22.355 5.123-50.996 8.616-85.46 8.616c-35.161 0-63.803-3.726-86.158-8.616C29.66 67.519 18.95 61.93 15.223 56.109c3.726 25.149 12.342 48.9 23.752 69.858c8.616 13.04 17.231 24.45 25.847 36.792c3.726 7.218 6.287 14.437 7.917 21.656c5.589 7.917 13.74 13.04 23.752 15.834c12.342 4.424 25.149 6.287 38.19 5.589h1.396c13.04.698 26.78-1.398 39.354-5.589c9.314-3.027 17.231-7.917 23.053-15.834h.698c1.397-7.22 3.726-14.438 7.219-21.656c8.616-12.342 17.232-23.752 25.847-36.792c11.41-20.725 19.328-44.476 23.752-69.858c-4.657 6.52-15.369 12.109-34.696 16.533Z"/></svg>
+      </span>
+    </div>
+    <div class="mt-8">
+      <h3 class="text-base font-semibold leading-6 text-gray-900">
+        <a href="/coffeeshop" class="focus:outline-none">
+          <span class="absolute inset-0" aria-hidden="true"></span>
+          CoffeeShop
+        </a>
+      </h3>
+      <p class="mt-2 text-sm text-gray-500">An intelligent agent for a coffee shop. This sample translates user intent into a list of coffee order items.</p>
+    </div>
+    <span class="pointer-events-none absolute right-6 top-6 text-gray-300 group-hover:text-gray-400" aria-hidden="true">
+      <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20 4h1a1 1 0 00-1-1v1zm-1 12a1 1 0 102 0h-2zM8 3a1 1 0 000 2V3zM3.293 19.293a1 1 0 101.414 1.414l-1.414-1.414zM19 4v12h2V4h-2zm1-1H8v2h12V3zm-.707.293l-16 16 1.414 1.414 16-16-1.414-1.414z" />
+      </svg>
+    </span>
+  </div>
+  <div class="sm:rounded-tr-lg group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+    <div>
+      <span class="inline-flex rounded-lg p-3 bg-indigo-50 text-indigo-700 ring-4 ring-white">
+        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+            <path fill="currentColor" d="M18.303 10a2.662 2.662 0 0 0-1.908.806l-.393.405l-.397-.405a2.662 2.662 0 0 0-3.816 0a2.8 2.8 0 0 0 0 3.896L16.002 19l4.209-4.298a2.8 2.8 0 0 0 0-3.896A2.662 2.662 0 0 0 18.303 10Z"/>
+            <path fill="currentColor" d="M17.736 30L16 29l4-7h6a1.997 1.997 0 0 0 2-2V8a1.997 1.997 0 0 0-2-2H6a1.997 1.997 0 0 0-2 2v12a1.997 1.997 0 0 0 2 2h9v2H6a4 4 0 0 1-4-4V8a3.999 3.999 0 0 1 4-4h20a3.999 3.999 0 0 1 4 4v12a4 4 0 0 1-4 4h-4.835Z"/>
+        </svg>
+      </span>
+    </div>
+    <div class="mt-8">
+      <h3 class="text-base font-semibold leading-6 text-gray-900">
+        <a href="/sentiment" class="focus:outline-none">
+          <span class="absolute inset-0" aria-hidden="true"></span>
+          Sentiment
+        </a>
+      </h3>
+      <p class="mt-2 text-sm text-gray-500">
+        A sentiment classifier which categorizes user input as negative, neutral, or positive. This is TypeChat's "hello world!"
+      </p>
+    </div>
+    <span class="pointer-events-none absolute right-6 top-6 text-gray-300 group-hover:text-gray-400" aria-hidden="true">
+      <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20 4h1a1 1 0 00-1-1v1zm-1 12a1 1 0 102 0h-2zM8 3a1 1 0 000 2V3zM3.293 19.293a1 1 0 101.414 1.414l-1.414-1.414zM19 4v12h2V4h-2zm1-1H8v2h12V3zm-.707.293l-16 16 1.414 1.414 16-16-1.414-1.414z" />
+      </svg>
+    </span>
+  </div>
+  <div class="group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+    <div>
+      <span class="inline-flex rounded-lg p-3 bg-indigo-50 text-indigo-700 ring-4 ring-white">
+        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 15 15"><path fill="currentColor" fill-rule="evenodd" d="M4.5 1a.5.5 0 0 1 .5.5V2h5v-.5a.5.5 0 0 1 1 0V2h1.5A1.5 1.5 0 0 1 14 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 1 12.5v-9A1.5 1.5 0 0 1 2.5 2H4v-.5a.5.5 0 0 1 .5-.5ZM10 3v.5a.5.5 0 0 0 1 0V3h1.5a.5.5 0 0 1 .5.5V5H2V3.5a.5.5 0 0 1 .5-.5H4v.5a.5.5 0 0 0 1 0V3h5ZM2 6v6.5a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V6H2Zm5 1.5a.5.5 0 1 1 1 0a.5.5 0 0 1-1 0ZM9.5 7a.5.5 0 1 0 0 1a.5.5 0 0 0 0-1Zm1.5.5a.5.5 0 1 1 1 0a.5.5 0 0 1-1 0Zm.5 1.5a.5.5 0 1 0 0 1a.5.5 0 0 0 0-1ZM9 9.5a.5.5 0 1 1 1 0a.5.5 0 0 1-1 0ZM7.5 9a.5.5 0 1 0 0 1a.5.5 0 0 0 0-1ZM5 9.5a.5.5 0 1 1 1 0a.5.5 0 0 1-1 0ZM3.5 9a.5.5 0 1 0 0 1a.5.5 0 0 0 0-1ZM3 11.5a.5.5 0 1 1 1 0a.5.5 0 0 1-1 0Zm2.5-.5a.5.5 0 1 0 0 1a.5.5 0 0 0 0-1Zm1.5.5a.5.5 0 1 1 1 0a.5.5 0 0 1-1 0Zm2.5-.5a.5.5 0 1 0 0 1a.5.5 0 0 0 0-1Z" clip-rule="evenodd"/></svg>
+      </span>
+    </div>
+    <div class="mt-8">
+      <h3 class="text-base font-semibold leading-6 text-gray-900">
+        <a href="/calendar" class="focus:outline-none">
+          <span class="absolute inset-0" aria-hidden="true"></span>
+          Calendar
+        </a>
+      </h3>
+      <p class="mt-2 text-sm text-gray-500">
+        	An intelligent scheduler. This sample translates user intent into a sequence of actions to modify a calendar.
+      </p>
+    </div>
+    <span class="pointer-events-none absolute right-6 top-6 text-gray-300 group-hover:text-gray-400" aria-hidden="true">
+      <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20 4h1a1 1 0 00-1-1v1zm-1 12a1 1 0 102 0h-2zM8 3a1 1 0 000 2V3zM3.293 19.293a1 1 0 101.414 1.414l-1.414-1.414zM19 4v12h2V4h-2zm1-1H8v2h12V3zm-.707.293l-16 16 1.414 1.414 16-16-1.414-1.414z" />
+      </svg>
+    </span>
+  </div>
+  <div class="group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+    <div>
+      <span class="inline-flex rounded-lg p-3 bg-indigo-50 text-indigo-700 ring-4 ring-white">
+        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <path fill="none" stroke="currentColor" stroke-width="2"
+                  d="M19 18H5h14Zm-7 0v-6v6Zm3 0v-4v4Zm-6 0v-4v4Zm10 4V11.33a3.001 3.001 0 1 0-2.08-5.63C16.55 3.874 14.46 2 12 2S7.45 3.874 7.08 5.7A3 3 0 1 0 5 11.33V22h14Z"/>
+        </svg>
+      </span>
+    </div>
+    <div class="mt-8">
+      <h3 class="text-base font-semibold leading-6 text-gray-900">
+        <a href="/restaurant" class="focus:outline-none">
+          <span class="absolute inset-0" aria-hidden="true"></span>
+          Restaurant
+        </a>
+      </h3>
+      <p class="mt-2 text-sm text-gray-500">
+        An intelligent agent for taking orders at a restaurant. Similar to the coffee shop example, but uses a more complex schema to model more complex linguistic input. 
+      </p>
+    </div>
+    <span class="pointer-events-none absolute right-6 top-6 text-gray-300 group-hover:text-gray-400" aria-hidden="true">
+      <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20 4h1a1 1 0 00-1-1v1zm-1 12a1 1 0 102 0h-2zM8 3a1 1 0 000 2V3zM3.293 19.293a1 1 0 101.414 1.414l-1.414-1.414zM19 4v12h2V4h-2zm1-1H8v2h12V3zm-.707.293l-16 16 1.414 1.414 16-16-1.414-1.414z" />
+      </svg>
+    </span>
+  </div>
+  <div class="sm:rounded-bl-lg group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+    <div>
+      <span class="inline-flex rounded-lg p-3 bg-indigo-50 text-indigo-700 ring-4 ring-white">
+        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M7 2H5v3H2v2h3v3h2V7h3V5H7V2zm7 3h8v2h-8zm0 10h8v2h-8zm0 4h8v2h-8zm-5.71-4.71L6 16.59l-2.29-2.3l-1.42 1.42L4.59 18l-2.3 2.29l1.42 1.42L6 19.41l2.29 2.3l1.42-1.42L7.41 18l2.3-2.29l-1.42-1.42z"/></svg>
+      </span>
+    </div>
+    <div class="mt-8">
+      <h3 class="text-base font-semibold leading-6 text-gray-900">
+        <a href="/math" class="focus:outline-none">
+          <span class="absolute inset-0" aria-hidden="true"></span>
+          Math
+        </a>
+      </h3>
+      <p class="mt-2 text-sm text-gray-500">
+        Translate calculations into simple programs given an API that can perform the 4 basic mathematical operators. 
+        This example highlights TypeChat's program generation capabilities.
+      </p>
+    </div>
+    <span class="pointer-events-none absolute right-6 top-6 text-gray-300 group-hover:text-gray-400" aria-hidden="true">
+      <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20 4h1a1 1 0 00-1-1v1zm-1 12a1 1 0 102 0h-2zM8 3a1 1 0 000 2V3zM3.293 19.293a1 1 0 101.414 1.414l-1.414-1.414zM19 4v12h2V4h-2zm1-1H8v2h12V3zm-.707.293l-16 16 1.414 1.414 16-16-1.414-1.414z" />
+      </svg>
+    </span>
+  </div>
+  <div class="rounded-bl-lg rounded-br-lg sm:rounded-bl-none group relative bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-500">
+    <div>
+      <span class="inline-flex rounded-lg p-3 bg-indigo-50 text-indigo-700 ring-4 ring-white">
+        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M21.65 2.24a1 1 0 0 0-.8-.23l-13 2A1 1 0 0 0 7 5v10.35A3.45 3.45 0 0 0 5.5 15A3.5 3.5 0 1 0 9 18.5v-7.64l11-1.69v4.18a3.45 3.45 0 0 0-1.5-.35a3.5 3.5 0 1 0 3.5 3.5V3a1 1 0 0 0-.35-.76ZM5.5 20A1.5 1.5 0 1 1 7 18.5A1.5 1.5 0 0 1 5.5 20Zm13-2a1.5 1.5 0 1 1 1.5-1.5a1.5 1.5 0 0 1-1.5 1.5ZM20 7.14L9 8.83v-3l11-1.66Z"/></svg>
+      </span>
+    </div>
+    <div class="mt-8">
+      <h3 class="text-base font-semibold leading-6 text-gray-900">
+        <a href="/music" class="focus:outline-none">
+          <span class="absolute inset-0" aria-hidden="true"></span>
+          Music
+        </a>
+      </h3>
+      <p class="mt-2 text-sm text-gray-500">
+        An app for playing music, creating playlists, etc. on Spotify through natural language. Each user intent is translated into a series of actions in JSON which correspond to a simple dataflow program, where each step can consume data produced from previous step.
+      </p>
+    </div>
+    <span class="pointer-events-none absolute right-6 top-6 text-gray-300 group-hover:text-gray-400" aria-hidden="true">
+      <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20 4h1a1 1 0 00-1-1v1zm-1 12a1 1 0 102 0h-2zM8 3a1 1 0 000 2V3zM3.293 19.293a1 1 0 101.414 1.414l-1.414-1.414zM19 4v12h2V4h-2zm1-1H8v2h12V3zm-.707.293l-16 16 1.414 1.414 16-16-1.414-1.414z" />
+      </svg>
+    </span>
+  </div>
+</div>
+
+
+<script type="module">
+import { mount } from "/mjs/app.mjs"
+</script>

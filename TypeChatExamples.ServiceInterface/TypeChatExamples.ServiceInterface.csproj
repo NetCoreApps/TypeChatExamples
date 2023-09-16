@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ServiceStack" Version="6.*" />
+    <PackageReference Include="ServiceStack.Server" Version="6.*" />
+    <PackageReference Include="ServiceStack.Ormlite" Version="6.*" />
+    <PackageReference Include="SpotifyAPI.Web" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TypeChatExamples.ServiceModel\TypeChatExamples.ServiceModel.csproj" />
+  </ItemGroup>
+
+</Project>
