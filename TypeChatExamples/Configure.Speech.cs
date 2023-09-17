@@ -1,9 +1,8 @@
-﻿using TypeChatExamples.ServiceInterface;
-using TypeChatExamples.ServiceModel;
-using ServiceStack.AI;
+﻿using ServiceStack.AI;
 using ServiceStack.IO;
 using ServiceStack.GoogleCloud;
 using Google.Cloud.Speech.V2;
+using TypeChatExamples.ServiceInterface;
 
 [assembly: HostingStartup(typeof(TypeChatExamples.ConfigureSpeech))]
 
@@ -20,19 +19,22 @@ public class ConfigureSpeech : IHostingStartup
             if (speechProvider == nameof(GoogleCloudSpeechToText))
             {
                 AppHost.AssertGoogleCloudCredentials();
-                services.AddSingleton<ISpeechToText>(c => new GoogleCloudSpeechToText(
-                    X.Map(c.Resolve<AppConfig>(), config =>
-                    {
-                        var siteConfig = config.GetSiteConfig(Tags.CoffeeShop);
-                        return new GoogleCloudSpeechConfig
+                services.AddSingleton<ISpeechToTextFactory>(c => new SpeechToTextFactory
+                {
+                    Resolve = feature => new GoogleCloudSpeechToText(
+                        X.Map(c.Resolve<AppConfig>(), config =>
                         {
-                            Project = config.Project,
-                            Location = config.Location,
-                            Bucket = siteConfig.Bucket,
-                            RecognizerId = siteConfig.RecognizerId,
-                            PhraseSetId = siteConfig.PhraseSetId,
-                        };
-                    })!, SpeechClient.Create()));
+                            var siteConfig = config.GetSiteConfig(feature);
+                            return new GoogleCloudSpeechConfig
+                            {
+                                Project = config.Project,
+                                Location = config.Location,
+                                Bucket = siteConfig.Bucket,
+                                RecognizerId = siteConfig.RecognizerId,
+                                PhraseSetId = siteConfig.PhraseSetId,
+                            };
+                        })!, SpeechClient.Create())
+                });
             }
             else if (speechProvider == nameof(WhisperApiSpeechToText))
             {
