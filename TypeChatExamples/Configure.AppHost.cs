@@ -4,6 +4,7 @@ using ServiceStack.Configuration;
 using ServiceStack.Host;
 using ServiceStack.IO;
 using ServiceStack.Web;
+using TypeChatExamples.ServiceModel;
 
 [assembly: HostingStartup(typeof(TypeChatExamples.AppHost))]
 
@@ -16,17 +17,30 @@ public class AppHost : AppHostBase, IHostingStartup
             // Configure ASP.NET Core IOC Dependencies
             var appConfig = new AppConfig();
             context.Configuration.Bind(nameof(AppConfig), appConfig);
+            if (appConfig.AwsConfig != null)
+            {
+                appConfig.AwsConfig.AccountId ??= Environment.GetEnvironmentVariable("AWS_ACCOUNT_ID");
+                appConfig.AwsConfig.AccessKey ??= Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
+                appConfig.AwsConfig.SecretKey ??= Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
+                appConfig.AwsConfig.Region ??= Environment.GetEnvironmentVariable("AWS_REGION");
+            }
+            if (appConfig.R2Config != null)
+            {
+                appConfig.R2Config.AccountId ??= Environment.GetEnvironmentVariable("R2_ACCOUNT_ID");
+                appConfig.R2Config.AccessKey ??= Environment.GetEnvironmentVariable("R2_ACCESS_KEY_ID");
+                appConfig.R2Config.SecretKey ??= Environment.GetEnvironmentVariable("R2_SECRET_ACCESS_KEY");
+                appConfig.R2Config.Region ??= Environment.GetEnvironmentVariable("R2_REGION");
+            }
             services.AddSingleton(appConfig);
 
             if (!AppTasks.IsRunAsAppTask())
             {
-                appConfig.NodePath ??= (ProcessUtils.FindExePath("node")
-                                        ?? throw new Exception("Could not resolve path to node"));
+                appConfig.NodePath ??= ProcessUtils.FindExePath("node") ?? throw new Exception("Could not resolve path to node");
                 appConfig.FfmpegPath ??= ProcessUtils.FindExePath("ffmpeg");
             }
         });
 
-    public AppHost() : base("CoffeeShop", typeof(PortalServices).Assembly) {}
+    public AppHost() : base("TypeChat Examples", typeof(GptServices).Assembly) {}
 
     public override void Configure(Container container)
     {
@@ -48,7 +62,7 @@ public class AppHost : AppHostBase, IHostingStartup
                 new UploadLocation("recordings", VirtualFiles, allowExtensions:FileExt.WebAudios, writeAccessRole: RoleNames.AllowAnon,
                     maxFileBytes: 1024 * 1024,
                     transformFile: ctx => ConvertAudioToWebM(ctx.File),
-                    resolvePath: ctx => $"/recordings/{ctx.DateSegment}/{DateTime.UtcNow.TimeOfDay.TotalMilliseconds}.{ctx.FileExtension}")
+                    resolvePath: ctx => $"/recordings/{ctx.GetDto<IRequireFeature>().Feature}/{ctx.DateSegment}/{DateTime.UtcNow.TimeOfDay.TotalMilliseconds}.{ctx.FileExtension}")
             ));
         }
     }
@@ -101,15 +115,6 @@ public class AppHost : AppHostBase, IHostingStartup
         });
 
         return to;
-    }
-
-    public static void AssertGoogleCloudCredentials()
-    {
-        var googleCredentials = Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS");
-        if (string.IsNullOrEmpty(googleCredentials))
-            throw new Exception("GOOGLE_APPLICATION_CREDENTIALS Environment Variable not set");
-        if (!File.Exists(googleCredentials))
-            throw new Exception($"GOOGLE_APPLICATION_CREDENTIALS '{googleCredentials}' does not exist");
     }
     
     public static void RegisterKey() =>

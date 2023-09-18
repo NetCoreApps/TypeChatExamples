@@ -1,4 +1,3 @@
-using System.Net;
 using TypeChatExamples.ServiceInterface;
 using TypeChatExamples.ServiceModel;
 using Microsoft.SemanticKernel;
@@ -30,12 +29,15 @@ public class GptTests
                     host.Register(dbFactory);
                     var appConfig = new AppConfig
                     {
-                        Project = "servicestackdemo",
-                        Location = "global",
+                        GcpConfig = new()
+                        {
+                            Project = "servicestackdemo",
+                            Location = "global",
+                            Bucket = "servicestack-coffeeshop",
+                        },
                         CoffeeShop = new()
                         {
                             GptPath = Path.GetFullPath(Path.Combine(hostDir, "gpt/coffeeshop")),
-                            Bucket = "servicestack-coffeeshop",
                             RecognizerId = "coffeeshop-recognizer",
                             PhraseSetId = "coffeeshop-phrases",
                         }

@@ -1,4 +1,6 @@
-﻿using ServiceStack.AI;
+﻿using Amazon;
+using Amazon.TranscribeService;
+using ServiceStack.AI;
 using ServiceStack.IO;
 using ServiceStack.GoogleCloud;
 using Google.Cloud.Speech.V2;
@@ -18,22 +20,49 @@ public class ConfigureSpeech : IHostingStartup
             var speechProvider = context.Configuration.GetValue<string>("SpeechProvider");
             if (speechProvider == nameof(GoogleCloudSpeechToText))
             {
-                AppHost.AssertGoogleCloudCredentials();
+                GoogleCloudConfig.AssertValidCredentials();
                 services.AddSingleton<ISpeechToTextFactory>(c => new SpeechToTextFactory
                 {
                     Resolve = feature => new GoogleCloudSpeechToText(
+                        SpeechClient.Create(),
                         X.Map(c.Resolve<AppConfig>(), config =>
                         {
                             var siteConfig = config.GetSiteConfig(feature);
+                            var gcpConfig = config.AssertGcpConfig();
                             return new GoogleCloudSpeechConfig
                             {
-                                Project = config.Project,
-                                Location = config.Location,
-                                Bucket = siteConfig.Bucket,
+                                Project = gcpConfig.Project,
+                                Location = gcpConfig.Location,
+                                Bucket = gcpConfig.Bucket,
                                 RecognizerId = siteConfig.RecognizerId,
                                 PhraseSetId = siteConfig.PhraseSetId,
                             };
-                        })!, SpeechClient.Create())
+                        })!)
+                    {
+                        VirtualFiles = HostContext.VirtualFiles
+                    }
+                });
+            }
+            else if (speechProvider == nameof(AwsSpeechToText))
+            {
+                services.AddSingleton(c => X.Map(c.Resolve<AppConfig>().AssertAwsConfig(), x => 
+                    new AmazonTranscribeServiceClient(x.AccessKey, x.SecretKey, RegionEndpoint.GetBySystemName(x.Region)))!);
+                services.AddSingleton<ISpeechToTextFactory>(c => new SpeechToTextFactory
+                {
+                    Resolve = feature => new AwsSpeechToText(
+                        c.Resolve<AmazonTranscribeServiceClient>(),
+                        X.Map(c.Resolve<AppConfig>(), config =>
+                        {
+                            var siteConfig = config.GetSiteConfig(feature);
+                            var awsConfig = config.AssertAwsConfig();
+                            return new AwsSpeechToTextConfig {
+                                Bucket = awsConfig.Bucket,
+                                VocabularyName = siteConfig.VocabularyName,
+                            };
+                        })!)
+                    {
+                        VirtualFiles = HostContext.VirtualFiles
+                    }
                 });
             }
             else if (speechProvider == nameof(WhisperApiSpeechToText))
@@ -52,7 +81,7 @@ public class ConfigureSpeech : IHostingStartup
         .ConfigureAppHost(appHost => {
             if (AppTasks.IsRunAsAppTask()) return;
 
-            if (appHost.Resolve<ISpeechToText>() is IRequireVirtualFiles requireVirtualFiles)
+            if (appHost.TryResolve<ISpeechToText>() is IRequireVirtualFiles requireVirtualFiles)
             {
                 requireVirtualFiles.VirtualFiles = appHost.VirtualFiles;
             }

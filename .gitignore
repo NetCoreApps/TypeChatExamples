@@ -12,6 +12,7 @@ package-lock.json
 App_Data/
 chat/
 speech-to-text/
+recordings/
 
 # User-specific files
 *.suo
