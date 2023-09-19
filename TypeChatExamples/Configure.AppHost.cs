@@ -33,6 +33,8 @@ public class AppHost : AppHostBase, IHostingStartup
             }
             if (appConfig.AzureConfig != null)
             {
+                appConfig.AzureConfig.SpeechKey ??= Environment.GetEnvironmentVariable("SPEECH_KEY");
+                appConfig.AzureConfig.SpeechRegion ??= Environment.GetEnvironmentVariable("SPEECH_REGION");
                 appConfig.AzureConfig.ConnectionString ??= Environment.GetEnvironmentVariable("AZURE_BLOB_CONNECTION_STRING");
             }
             services.AddSingleton(appConfig);

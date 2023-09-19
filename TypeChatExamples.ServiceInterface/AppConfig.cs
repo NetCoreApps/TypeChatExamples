@@ -64,6 +64,8 @@ public class S3Config
 
 public class AzureConfig
 {
+    public string? SpeechKey { get; set; }
+    public string? SpeechRegion { get; set; }
     public string? ConnectionString { get; set; }
     public string ContainerName { get; set; }
 }

@@ -4,6 +4,7 @@ using ServiceStack.AI;
 using ServiceStack.IO;
 using ServiceStack.GoogleCloud;
 using Google.Cloud.Speech.V2;
+using Microsoft.CognitiveServices.Speech;
 using TypeChatExamples.ServiceInterface;
 
 [assembly: HostingStartup(typeof(TypeChatExamples.ConfigureSpeech))]
@@ -64,6 +65,16 @@ public class ConfigureSpeech : IHostingStartup
                         VirtualFiles = HostContext.VirtualFiles
                     }
                 });
+            }
+            else if (speechProvider == nameof(AzureSpeechToText))
+            {
+                services.AddSingleton<ISpeechToText>(c => X.Map(c.Resolve<AppConfig>(), config =>
+                {
+                    var azureConfig = config.AssertAzureConfig();
+                    var speechConfig = SpeechConfig.FromSubscription(azureConfig.SpeechKey, azureConfig.SpeechRegion);
+                    speechConfig.SpeechRecognitionLanguage = "en-US";
+                    return new AzureSpeechToText(speechConfig);
+                })!);
             }
             else if (speechProvider == nameof(WhisperApiSpeechToText))
             {

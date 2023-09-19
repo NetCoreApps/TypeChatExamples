@@ -12,6 +12,7 @@
     <PackageReference Include="ServiceStack.Ormlite" Version="6.*" />
     <PackageReference Include="ServiceStack.Aws" Version="6.*" />
     <PackageReference Include="AWSSDK.TranscribeService" Version="3.7.201.39" />
+    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.32.1" />
     <PackageReference Include="SpotifyAPI.Web" Version="7.0.0" />
   </ItemGroup>
 
