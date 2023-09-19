@@ -2,6 +2,7 @@
 using Amazon.S3;
 using TypeChatExamples.ServiceInterface;
 using Google.Cloud.Storage.V1;
+using ServiceStack.Azure.Storage;
 using ServiceStack.GoogleCloud;
 using ServiceStack.IO;
 
@@ -40,6 +41,11 @@ public class ConfigureVfs : IHostingStartup
                     new AmazonS3Config {
                         ServiceURL = $"https://{r2Config.AccountId}.r2.cloudflarestorage.com",
                     }), r2Config.Bucket);
+            }
+            else if (vfsProvider == nameof(AzureBlobVirtualFiles))
+            {
+                var azureConfig = appHost.Resolve<AppConfig>().AssertAzureConfig();
+                appHost.VirtualFiles = new AzureBlobVirtualFiles(azureConfig.ConnectionString, azureConfig.ContainerName);
             }
             //else uses default FileSystemVirtualFiles
         });

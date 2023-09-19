@@ -5,6 +5,7 @@ public class AppConfig
     public GcpConfig? GcpConfig { get; set; }
     public S3Config? AwsConfig { get; set; }
     public S3Config? R2Config { get; set; }
+    public AzureConfig? AzureConfig { get; set; }
     public SiteConfig CoffeeShop { get; set; }
     public SiteConfig Sentiment { get; set; }
     public SiteConfig Calendar { get; set; }
@@ -19,7 +20,8 @@ public class AppConfig
     public GcpConfig AssertGcpConfig() => GcpConfig ?? throw new Exception($"{nameof(GcpConfig)} is not configured");
     public S3Config AssertAwsConfig() => AwsConfig ?? throw new Exception($"{nameof(AwsConfig)} is not configured");
     public S3Config AssertR2Config() => R2Config ?? throw new Exception($"{nameof(R2Config)} is not configured");
-
+    public AzureConfig AssertAzureConfig() => AzureConfig ?? throw new Exception($"{nameof(AzureConfig)} is not configured");
+    
     public SiteConfig GetSiteConfig(string name)
     {
         return name.ToLower() switch
@@ -58,4 +60,10 @@ public class S3Config
     public string? SecretKey { get; set; }
     public string? Region { get; set; }
     public string Bucket { get; set; }
+}
+
+public class AzureConfig
+{
+    public string? ConnectionString { get; set; }
+    public string ContainerName { get; set; }
 }

@@ -31,6 +31,10 @@ public class AppHost : AppHostBase, IHostingStartup
                 appConfig.R2Config.SecretKey ??= Environment.GetEnvironmentVariable("R2_SECRET_ACCESS_KEY");
                 appConfig.R2Config.Region ??= Environment.GetEnvironmentVariable("R2_REGION");
             }
+            if (appConfig.AzureConfig != null)
+            {
+                appConfig.AzureConfig.ConnectionString ??= Environment.GetEnvironmentVariable("AZURE_BLOB_CONNECTION_STRING");
+            }
             services.AddSingleton(appConfig);
 
             if (!AppTasks.IsRunAsAppTask())
