@@ -23,9 +23,8 @@ public class GptTests
             {
                 ConfigureAppHost = host =>
                 {
-                    var hostDir = "../../../../CoffeeShop";
-                    host.VirtualFiles = new FileSystemVirtualFiles(hostDir);
                     var dbFactory = ResolveDbFactory();
+                    host.VirtualFiles = new FileSystemVirtualFiles(".");
                     host.Register(dbFactory);
                     var appConfig = new AppConfig
                     {
@@ -33,16 +32,18 @@ public class GptTests
                         {
                             Project = "servicestackdemo",
                             Location = "global",
-                            Bucket = "servicestack-coffeeshop",
+                            Bucket = "servicestack-typechat",
                         },
                         CoffeeShop = new()
                         {
-                            GptPath = Path.GetFullPath(Path.Combine(hostDir, "gpt/coffeeshop")),
+                            GptPath = Path.GetFullPath("gpt/coffeeshop"),
                             RecognizerId = "coffeeshop-recognizer",
                             PhraseSetId = "coffeeshop-phrases",
                         }
                     };
                     host.Register(appConfig);
+                    
+                    host.LoadPlugin(new AutoQueryFeature());
                     
                     var kernel = Kernel.Builder
                         .WithOpenAIChatCompletionService(
@@ -51,8 +52,25 @@ public class GptTests
                         .Build();
 
                     host.Register(kernel);
-                    host.Container.AddSingleton<ITypeChat>(c => new KernelTypeChat(c.Resolve<IKernel>()));
-                    host.Container.AddSingleton<IPromptProvider>(c => new CoffeeShopPromptProvider(dbFactory, appConfig)); 
+                    var services = host.Container;
+                    services.AddSingleton<ITypeChat>(c => new KernelTypeChat(c.Resolve<IKernel>()));
+                    services.AddSingleton<CoffeeShopPromptProvider>();
+                    services.AddSingleton<SentimentPromptProvider>();
+                    services.AddSingleton<CalendarPromptProvider>();
+                    services.AddSingleton<RestaurantPromptProvider>();
+                    services.AddSingleton<MathPromptProvider>();
+                    services.AddSingleton<MusicPromptProvider>();
+                    services.AddSingleton<IPromptProviderFactory>(c => new PromptProviderFactory {
+                        Providers = {
+                            [Tags.CoffeeShop] = c.Resolve<CoffeeShopPromptProvider>(),
+                            [Tags.Sentiment] = c.Resolve<SentimentPromptProvider>(),
+                            [Tags.Calendar] = c.Resolve<CalendarPromptProvider>(),
+                            [Tags.Restaurant] = c.Resolve<RestaurantPromptProvider>(),
+                            [Tags.Math] = c.Resolve<MathPromptProvider>(),
+                            [Tags.Music] = c.Resolve<MusicPromptProvider>(),
+                        }
+                    });
+                    
                 }
             }
             .Init();
@@ -73,7 +91,9 @@ public class GptTests
     {
         using var appHost = CreateAppHost();
         var service = appHost.Resolve<GptServices>();
-        var response = await service.Any(new GetPhrases());
+        var response = await service.Any(new GetPhrases {
+            Feature = Tags.CoffeeShop
+        });
         
         response.Results.PrintDump();
     }
@@ -89,6 +109,7 @@ public class GptTests
         var service = appHost.Resolve<GptServices>();
         var prompt = await service.Any(new GetPrompt
         {
+            Feature = Tags.CoffeeShop,
             UserMessage = request +
                           @"
 JSON validation failed: 'vanilla' is not a valid name for the type: Syrups
@@ -141,6 +162,7 @@ export interface Syrups {
         using var appHost = CreateAppHost();
 
         var service = appHost.Resolve<GptServices>();
+        service.Request = new MockHttpRequest();
         // var schema = (string) await service.Any(new CoffeeShopSchema());
         // schema.Print();
         var prompt = await service.Any(new CreateChat

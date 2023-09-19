@@ -7,6 +7,7 @@ using TypeChatExamples.ServiceInterface;
 
 namespace TypeChatExamples.Tests;
 
+[Explicit, Category("Integration")]
 public class AzureTests
 {
     AzureConfig azureConfig = new()

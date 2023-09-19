@@ -8,6 +8,7 @@ using TypeChatExamples.ServiceInterface;
 
 namespace TypeChatExamples.Tests;
 
+[Explicit, Category("Integration")]
 public class R2Tests
 {
     S3Config r2Config = new()

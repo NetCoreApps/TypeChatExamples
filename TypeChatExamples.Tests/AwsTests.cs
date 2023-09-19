@@ -13,6 +13,7 @@ using TypeChatExamples.ServiceInterface;
 
 namespace TypeChatExamples.Tests;
 
+[Explicit, Category("Integration")]
 public class AwsTests
 {
     S3Config awsConfig = new()
