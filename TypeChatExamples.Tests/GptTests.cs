@@ -12,7 +12,7 @@ using ServiceStack.Text;
 
 namespace TypeChatExamples.Tests;
 
-[TestFixture, Explicit("Integration")]
+[TestFixture, Explicit, Category("Integration")]
 public class GptTests
 {
     IDbConnectionFactory ResolveDbFactory() => new ConfigureDb().ConfigureAndResolve<IDbConnectionFactory>();

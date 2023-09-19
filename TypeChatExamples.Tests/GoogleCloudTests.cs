@@ -9,7 +9,7 @@ using ServiceStack.Text;
 
 namespace TypeChatExamples.Tests;
 
-[Explicit, Category("Integration")]
+[TestFixture, Explicit, Category("Integration")]
 public class GoogleCloudTests
 {
     const string ServiceUrl = "https://australia-southeast1-speech.googleapis.com/v2";

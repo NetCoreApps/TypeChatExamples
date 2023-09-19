@@ -29,6 +29,5 @@ public class UnitTest
         Assert.That(cart.Items[0].Product.Type, Is.EqualTo("LatteDrinks"));
         Assert.That(cart.Items[0].Product.Name, Is.EqualTo("latte"));
         Assert.That(cart.Items[0].Product.Temperature, Is.EqualTo("iced"));
-        
     }
 }
