@@ -51,19 +51,15 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
 
+  
   <ItemGroup>
     <None Update="typechat.mjs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="gpt\coffeeshop\prompt.ss">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="gpt\coffeeshop\schema.ss">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="postinstall.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="gpt\**\**" CopyToOutputDirectory="PreserveNewest"  />
   </ItemGroup>
-
+  
 </Project>
