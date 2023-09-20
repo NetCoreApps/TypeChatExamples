@@ -1,22 +1,26 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0-focal AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0-jammy AS build
 WORKDIR /app
-
-RUN curl -sL https://deb.nodesource.com/setup_18.x | bash - \
- && apt-get install -y --no-install-recommends nodejs \
- && echo "node version: $(node --version)" \
- && echo "npm version: $(npm --version)" \
- && rm -rf /var/lib/apt/lists/*
 
 COPY . .
 RUN dotnet restore
 
 WORKDIR /app/TypeChatExamples
-RUN npm cache clean --force
-RUN npm install node-fetch
-RUN node postinstall.js && npm run build
 RUN dotnet publish -c release -o /out --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-focal AS runtime
+RUN --mount=type=secret,id=googlecloud_credentials_base64 \
+    cat /run/secrets/googlecloud_credentials_base64 | base64 -d > /out/googlecloud-credentials.json
+
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy AS runtime
+
+# install node.js, ffmpeg and npm install
+RUN apt-get clean && apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends curl gnupg ffmpeg \
+    && curl -sL https://deb.nodesource.com/setup_current.x | bash - \
+    && apt-get install nodejs -yq
+
 WORKDIR /app
 COPY --from=build /out ./
+
+# don't run dev postinstall script when installing npm deps
+RUN grep -Ev 'postinstall' package.json > tmp && mv tmp package.json && npm install
+
 ENTRYPOINT ["dotnet", "TypeChatExamples.dll"]
