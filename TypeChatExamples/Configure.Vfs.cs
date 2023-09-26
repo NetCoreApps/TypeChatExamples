@@ -1,10 +1,10 @@
 ﻿using Amazon;
 using Amazon.S3;
-using TypeChatExamples.ServiceInterface;
 using Google.Cloud.Storage.V1;
 using ServiceStack.Azure.Storage;
 using ServiceStack.GoogleCloud;
 using ServiceStack.IO;
+using TypeChatExamples.ServiceInterface;
 
 [assembly: HostingStartup(typeof(TypeChatExamples.ConfigureVfs))]
 
