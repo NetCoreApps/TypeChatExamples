@@ -16,7 +16,7 @@ namespace TypeChatExamples.Tests;
 [TestFixture, Explicit, Category("Integration")]
 public class AwsTests
 {
-    S3Config awsConfig = new()
+    AwsConfig awsConfig = new()
     {
         AccountId = Environment.GetEnvironmentVariable("AWS_ACCOUNT_ID"),
         AccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID"),

@@ -1,7 +1,7 @@
-﻿using TypeChatExamples.ServiceInterface;
-using TypeChatExamples.ServiceModel;
+﻿using ServiceStack.AI;
 using Microsoft.SemanticKernel;
-using ServiceStack.AI;
+using TypeChatExamples.ServiceInterface;
+using TypeChatExamples.ServiceModel;
 
 [assembly: HostingStartup(typeof(TypeChatExamples.ConfigureGpt))]
 

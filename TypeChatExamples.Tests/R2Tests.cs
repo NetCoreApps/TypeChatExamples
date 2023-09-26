@@ -11,12 +11,11 @@ namespace TypeChatExamples.Tests;
 [TestFixture, Explicit, Category("Integration")]
 public class R2Tests
 {
-    S3Config r2Config = new()
+    R2Config r2Config = new()
     {
         AccountId = Environment.GetEnvironmentVariable("R2_ACCOUNT_ID"),
         AccessKey = Environment.GetEnvironmentVariable("R2_ACCESS_KEY_ID"),
         SecretKey = Environment.GetEnvironmentVariable("R2_SECRET_ACCESS_KEY"),
-        Region = Environment.GetEnvironmentVariable("R2_REGION"),
         Bucket = "servicestack-coffeeshop", 
     };
     private AmazonS3Client s3Client;

@@ -1,13 +1,12 @@
 ﻿using System.Text.Json;
-using Amazon.S3;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
 using NUnit.Framework;
 using ServiceStack.AI;
+using ServiceStack.Azure;
 using ServiceStack.Azure.Storage;
 using ServiceStack.IO;
 using ServiceStack.Text;
-using TypeChatExamples.ServiceInterface;
 
 namespace TypeChatExamples.Tests;
 

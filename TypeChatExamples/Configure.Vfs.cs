@@ -1,10 +1,10 @@
-﻿using Amazon;
-using Amazon.S3;
-using Google.Cloud.Storage.V1;
+﻿using ServiceStack.Aws;
+using ServiceStack.Azure;
 using ServiceStack.Azure.Storage;
 using ServiceStack.GoogleCloud;
 using ServiceStack.IO;
-using TypeChatExamples.ServiceInterface;
+using Amazon.S3;
+using Google.Cloud.Storage.V1;
 
 [assembly: HostingStartup(typeof(TypeChatExamples.ConfigureVfs))]
 
@@ -22,30 +22,30 @@ public class ConfigureVfs : IHostingStartup
             {
                 GoogleCloudConfig.AssertValidCredentials();
                 appHost.VirtualFiles = new GoogleCloudVirtualFiles(
-                    StorageClient.Create(), appHost.Resolve<AppConfig>().AssertGcpConfig().Bucket);
+                    StorageClient.Create(), appHost.Resolve<GoogleCloudConfig>().Bucket!);
             }
             else if (vfsProvider == nameof(S3VirtualFiles))
             {
-                var awsConfig = appHost.Resolve<AppConfig>().AssertAwsConfig();
+                var aws = appHost.Resolve<AwsConfig>();
                 appHost.VirtualFiles = new S3VirtualFiles(new AmazonS3Client(
-                    awsConfig.AccessKey,
-                    awsConfig.SecretKey,
-                    RegionEndpoint.GetBySystemName(awsConfig.Region)), awsConfig.Bucket);
+                    aws.AccessKey,
+                    aws.SecretKey,
+                    aws.ToRegionEndpoint()), aws.Bucket);
             }
             else if (vfsProvider == nameof(R2VirtualFiles))
             {
-                var r2Config = appHost.Resolve<AppConfig>().AssertR2Config();
+                var r2 = appHost.Resolve<R2Config>();
                 appHost.VirtualFiles = new R2VirtualFiles(new AmazonS3Client(
-                    r2Config.AccessKey,
-                    r2Config.SecretKey,
+                    r2.AccessKey,
+                    r2.SecretKey,
                     new AmazonS3Config {
-                        ServiceURL = $"https://{r2Config.AccountId}.r2.cloudflarestorage.com",
-                    }), r2Config.Bucket);
+                        ServiceURL = r2.ToServiceUrl(),
+                    }), r2.Bucket);
             }
             else if (vfsProvider == nameof(AzureBlobVirtualFiles))
             {
-                var azureConfig = appHost.Resolve<AppConfig>().AssertAzureConfig();
-                appHost.VirtualFiles = new AzureBlobVirtualFiles(azureConfig.ConnectionString, azureConfig.ContainerName);
+                var azure = appHost.Resolve<AzureConfig>();
+                appHost.VirtualFiles = new AzureBlobVirtualFiles(azure.ConnectionString, azure.ContainerName);
             }
             //else uses default FileSystemVirtualFiles
         });

@@ -1,6 +1,5 @@
 using ServiceStack.Web;
 using ServiceStack.Auth;
-using ServiceStack.Configuration;
 using TypeChatExamples.ServiceModel;
 
 [assembly: HostingStartup(typeof(TypeChatExamples.ConfigureAuthRepository))]

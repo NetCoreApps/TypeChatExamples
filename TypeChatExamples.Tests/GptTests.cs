@@ -5,6 +5,7 @@ using NUnit.Framework;
 using ServiceStack;
 using ServiceStack.Data;
 using ServiceStack.AI;
+using ServiceStack.GoogleCloud;
 using ServiceStack.IO;
 using ServiceStack.OrmLite;
 using ServiceStack.Testing;
@@ -28,12 +29,6 @@ public class GptTests
                     host.Register(dbFactory);
                     var appConfig = new AppConfig
                     {
-                        GcpConfig = new()
-                        {
-                            Project = "servicestackdemo",
-                            Location = "global",
-                            Bucket = "servicestack-typechat",
-                        },
                         CoffeeShop = new()
                         {
                             GptPath = Path.GetFullPath("gpt/coffeeshop"),
@@ -42,6 +37,11 @@ public class GptTests
                         }
                     };
                     host.Register(appConfig);
+                    host.Register(new GoogleCloudConfig {
+                        Project = "servicestackdemo",
+                        Location = "global",
+                        Bucket = "servicestack-typechat",
+                    });
                     
                     host.LoadPlugin(new AutoQueryFeature());
                     
