@@ -1,8 +1,8 @@
-﻿using ServiceStack.Aws;
+﻿using ServiceStack.IO;
+using ServiceStack.Aws;
 using ServiceStack.Azure;
 using ServiceStack.Azure.Storage;
 using ServiceStack.GoogleCloud;
-using ServiceStack.IO;
 using Amazon.S3;
 using Google.Cloud.Storage.V1;
 
