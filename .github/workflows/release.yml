@@ -119,8 +119,10 @@ jobs:
       - name: repository name fix and env
         run: |
           echo "image_repository_name=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-          echo "domain=${{ secrets.DEPLOY_HOST }}" >> $GITHUB_ENV
+          echo "deploy_host=${{ secrets.DEPLOY_HOST }}" >> $GITHUB_ENV
           echo "letsencrypt_email=${{ secrets.LETSENCRYPT_EMAIL }}" >> $GITHUB_ENV
+          echo "openai_model=${{ secrets.OPENAI_MODEL }}" >> $GITHUB_ENV
+          echo "openai_api_key=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
           echo "TAG_NAME=latest" >> $GITHUB_ENV
           if [ "${{ github.event.release.tag_name }}" != "" ]; then
             echo "TAG_NAME=${{ github.event.release.tag_name }}" >> $GITHUB_ENV
@@ -136,10 +138,10 @@ jobs:
           RELEASE_VERSION: ${{ env.TAG_NAME }}
           IMAGE_REPO: ${{ env.image_repository_name }}
           APP_NAME: ${{ github.event.repository.name }}
-          HOST_DOMAIN: ${{ secrets.DEPLOY_HOST }}
+          HOST_DOMAIN: ${{ env.deploy_host }}
           LETSENCRYPT_EMAIL: ${{ env.letsencrypt_email }}
-          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ env.openai_model }}
+          OPENAI_API_KEY: ${{ env.openai_api_key }}
         with:
           input: .deploy/docker-compose-template.yml
           output: .deploy/${{ github.event.repository.name }}-docker-compose.yml
