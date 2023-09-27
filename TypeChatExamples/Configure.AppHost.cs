@@ -2,6 +2,7 @@ using Funq;
 using ServiceStack.Aws;
 using ServiceStack.Azure;
 using ServiceStack.Configuration;
+using ServiceStack.GoogleCloud;
 using ServiceStack.Host;
 using ServiceStack.IO;
 using ServiceStack.Web;
@@ -19,6 +20,12 @@ public class AppHost : AppHostBase, IHostingStartup
             // Configure ASP.NET Core IOC Dependencies
             var appConfig = context.Configuration.GetSection(nameof(AppConfig)).Get<AppConfig>();
             services.AddSingleton(appConfig);
+
+            var gcp = context.Configuration.GetSection(nameof(GoogleCloudConfig))?.Get<GoogleCloudConfig>();
+            if (gcp != null)
+            {
+                services.AddSingleton(gcp);
+            }
 
             var aws = context.Configuration.GetSection(nameof(AwsConfig))?.Get<AwsConfig>();
             if (aws != null)
