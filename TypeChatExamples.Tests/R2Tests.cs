@@ -4,14 +4,13 @@ using NUnit.Framework;
 using ServiceStack.Aws;
 using ServiceStack.IO;
 using ServiceStack.Text;
-using TypeChatExamples.ServiceInterface;
 
 namespace TypeChatExamples.Tests;
 
 [TestFixture, Explicit, Category("Integration")]
 public class R2Tests
 {
-    R2Config r2Config = new()
+    CloudflareConfig config = new()
     {
         AccountId = Environment.GetEnvironmentVariable("R2_ACCOUNT_ID"),
         AccessKey = Environment.GetEnvironmentVariable("R2_ACCESS_KEY_ID"),
@@ -23,10 +22,10 @@ public class R2Tests
     public R2Tests()
     {
         s3Client = new AmazonS3Client(
-            r2Config.AccessKey,
-            r2Config.SecretKey,
+            config.AccessKey,
+            config.SecretKey,
             new AmazonS3Config {
-                ServiceURL = $"https://{r2Config.AccountId}.r2.cloudflarestorage.com",
+                ServiceURL = $"https://{config.AccountId}.r2.cloudflarestorage.com",
             });
     }
 
@@ -36,14 +35,14 @@ public class R2Tests
     {
         s3Client.ListObjects(new ListObjectsRequest
         {
-            BucketName = r2Config.Bucket,
+            BucketName = config.Bucket,
         });
     }
 
     [Test]
     public void Can_access_r2_bucket_vfs()
     {
-        var vfs = new S3VirtualFiles(s3Client, r2Config.Bucket);
+        var vfs = new S3VirtualFiles(s3Client, config.Bucket);
 
         var files = vfs.GetAllFiles().ToList();
         $"FILES {files.Count}:".Print();
