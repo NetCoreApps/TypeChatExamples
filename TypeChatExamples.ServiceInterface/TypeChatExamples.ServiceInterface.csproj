@@ -1,18 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ServiceStack" Version="6.*" />
-    <PackageReference Include="ServiceStack.Server" Version="6.*" />
-    <PackageReference Include="ServiceStack.Ormlite" Version="6.*" />
-    <PackageReference Include="ServiceStack.Aws" Version="6.*" />
-    <PackageReference Include="AWSSDK.TranscribeService" Version="3.7.201.39" />
-    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.32.1" />
+    <PackageReference Include="ServiceStack" Version="8.*" />
+    <PackageReference Include="ServiceStack.Server" Version="8.*" />
+    <PackageReference Include="ServiceStack.Ormlite" Version="8.*" />
+    <PackageReference Include="ServiceStack.Aws" Version="8.*" />
+    <PackageReference Include="AWSSDK.TranscribeService" Version="3.7.*" />
+    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.33.0" />
     <PackageReference Include="SpotifyAPI.Web" Version="7.0.0" />
   </ItemGroup>
 

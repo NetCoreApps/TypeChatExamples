@@ -33,7 +33,7 @@ public class ConfigureGpt : IHostingStartup
             var gptProvider = context.Configuration.GetValue<string>("TypeChatProvider");
             if (gptProvider == nameof(KernelTypeChat))
             {
-                var kernel = Kernel.Builder.WithOpenAIChatCompletionService(
+                var kernel = new KernelBuilder().WithOpenAIChatCompletionService(
                         Environment.GetEnvironmentVariable("OPENAI_MODEL") ?? "gpt-3.5-turbo", 
                         Environment.GetEnvironmentVariable("OPENAI_API_KEY")!)
                     .Build();

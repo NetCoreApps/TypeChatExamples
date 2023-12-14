@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
@@ -22,23 +22,23 @@
 
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.30.*" />
-    <PackageReference Include="ServiceStack" Version="6.*" />
-    <PackageReference Include="ServiceStack.Mvc" Version="6.*" />
-    <PackageReference Include="ServiceStack.Server" Version="6.*" />
-    <PackageReference Include="ServiceStack.OrmLite.Sqlite.Data" Version="6.*" />
-    <PackageReference Include="ServiceStack.AI" Version="6.*" />
-    <PackageReference Include="ServiceStack.GoogleCloud" Version="6.*" />
-    <PackageReference Include="ServiceStack.Aws" Version="6.*" />
-    <PackageReference Include="AWSSDK.TranscribeService" Version="3.7.201.39" />
+    <PackageReference Include="ServiceStack" Version="8.*" />
+    <PackageReference Include="ServiceStack.Mvc" Version="8.*" />
+    <PackageReference Include="ServiceStack.Server" Version="8.*" />
+    <PackageReference Include="ServiceStack.OrmLite.Sqlite.Data" Version="8.*" />
+    <PackageReference Include="ServiceStack.AI" Version="8.*" />
+    <PackageReference Include="ServiceStack.GoogleCloud" Version="8.*" />
+    <PackageReference Include="ServiceStack.Aws" Version="8.*" />
+    <PackageReference Include="AWSSDK.TranscribeService" Version="3.7.*" />
     
-    <PackageReference Include="ServiceStack.Azure" Version="6.*" />
-    <PackageReference Include="Google.Cloud.Storage.V1" Version="4.6.0" />
-    <PackageReference Include="Google.Cloud.Speech.V2" Version="1.0.0-beta06" />
-    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.32.1" />
+    <PackageReference Include="ServiceStack.Azure" Version="8.*" />
+    <PackageReference Include="Google.Cloud.Storage.V1" Version="4.7.0" />
+    <PackageReference Include="Google.Cloud.Speech.V2" Version="1.0.0-beta07" />
+    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.33.0" />
 
     <!-- Required for Razor compilation on change: https://docs.microsoft.com/en-us/aspnet/core/mvc/views/view-compilation?view=aspnetcore-5.0 -->
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.*" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="0.24.230912.2-preview" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.*" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta6" />
   </ItemGroup>
 
   <ItemGroup>
