@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0-jammy AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 COPY . .
@@ -10,7 +10,7 @@ RUN dotnet publish -c release -o /out --no-restore
 RUN --mount=type=secret,id=googlecloud_credentials_base64 \
     cat /run/secrets/googlecloud_credentials_base64 | base64 -d > /out/googlecloud-credentials.json
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-jammy AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 
 # install node.js, ffmpeg and npm install
 RUN apt-get clean && apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends curl gnupg ffmpeg \
