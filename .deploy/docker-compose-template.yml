@@ -3,11 +3,11 @@ services:
   ${APP_NAME}:
     image: ghcr.io/${IMAGE_REPO}:${RELEASE_VERSION}
     restart: always
-    network_mode: bridge
     ports:
-      - "80"
+      - "8080"
     environment:
       VIRTUAL_HOST: ${HOST_DOMAIN}
+      VIRTUAL_PORT: 8080
       LETSENCRYPT_HOST: ${HOST_DOMAIN}
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
       OPENAI_MODEL: ${OPENAI_MODEL}
@@ -26,3 +26,8 @@ services:
 
 volumes:
   ${APP_NAME}-mydb:
+
+networks:
+  default:
+    name: nginx
+    external: true
