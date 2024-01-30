@@ -140,5 +140,5 @@ public class AppHost : AppHostBase, IHostingStartup
     }
     
     public static void RegisterKey() =>
-        Licensing.RegisterLicense("OSS BSD-3-Clause 2023 https://github.com/NetCoreApps/TypeChatExamples Y8vd5wUuSPbJKmtn8LSuuIvYb7j+KMmOYLNI9daieMsmgxeoYdxj3EORLq6I7W7LHyunC+8RnY6y/W4lqVib6nmJsWFERUyq+2MDvpN47Bqvfi1hh7jrhPQvMItH1NNoZi9Af5SksnqkdrvRU2JUgkSUbJxynhaTBh/iwaC/zMs=");
+        Licensing.RegisterLicense("OSS GPL-3.0 2024 https://github.com/NetCoreApps/TypeChatExamples AoYtcT3/UQmzr/QOPsMfEN3HLrf4Dj2JsqOXuZAtuPoUIJhPOugkmANDQbFKRQF7wyD10d/blCPTECWwemjmKtAxg5lmLbDZ3dc8ijuZ8ACC4xGtdkCke9hbydAMXAk+O6cUYTz37C0lBsusZdv6dKV6CJQ3NsmhMZETtDzAYDg=");
 }
