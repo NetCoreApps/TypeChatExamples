@@ -60,6 +60,23 @@ public class AppHost : AppHostBase, IHostingStartup
                 appConfig.NodePath ??= ProcessUtils.FindExePath("node") ?? throw new Exception("Could not resolve path to node");
                 appConfig.FfmpegPath ??= ProcessUtils.FindExePath("ffmpeg");
             }
+
+            var wwwrootVfs = new FileSystemVirtualFiles(context.HostingEnvironment.ContentRootPath.CombineWith("wwwroot"));
+            var vfs = new FileSystemVirtualFiles(context.HostingEnvironment.ContentRootPath);
+            services.AddPlugin(new FilesUploadFeature(
+                new UploadLocation("products", wwwrootVfs, allowExtensions:FileExt.WebImages,
+                    resolvePath: ctx => $"/products/{ctx.FileName}"),
+                new UploadLocation("recordings", vfs, allowExtensions:FileExt.WebAudios, writeAccessRole: RoleNames.AllowAnon,
+                    maxFileBytes: 1024 * 1024,
+                    transformFile: ctx => ConvertAudioToWebM(ctx.File),
+                    resolvePath: ctx => $"/recordings/{ctx.GetDto<IRequireFeature>().Feature}/{ctx.DateSegment}/{DateTime.UtcNow.TimeOfDay.TotalMilliseconds}.{ctx.FileExtension}")
+            ));
+            
+            services.AddPlugin(new CorsFeature(new[] {
+                "http://localhost:5173", //vite dev
+            }, allowCredentials:true));
+            
+            services.AddPlugin(new ProfilingFeature());
         });
 
     public AppHost() : base("TypeChat Examples", typeof(GptServices).Assembly) {}
@@ -68,25 +85,6 @@ public class AppHost : AppHostBase, IHostingStartup
     {
         SetConfig(new HostConfig {
         });
-        
-        Plugins.Add(new CorsFeature(new[] {
-            "http://localhost:5173", //vite dev
-        }, allowCredentials:true));
-        
-        Plugins.Add(new ProfilingFeature());
-
-        if (!AppTasks.IsRunAsAppTask())
-        {
-            var wwwrootVfs = GetVirtualFileSource<FileSystemVirtualFiles>();
-            Plugins.Add(new FilesUploadFeature(
-                new UploadLocation("products", wwwrootVfs, allowExtensions:FileExt.WebImages,
-                    resolvePath: ctx => $"/products/{ctx.FileName}"),
-                new UploadLocation("recordings", VirtualFiles, allowExtensions:FileExt.WebAudios, writeAccessRole: RoleNames.AllowAnon,
-                    maxFileBytes: 1024 * 1024,
-                    transformFile: ctx => ConvertAudioToWebM(ctx.File),
-                    resolvePath: ctx => $"/recordings/{ctx.GetDto<IRequireFeature>().Feature}/{ctx.DateSegment}/{DateTime.UtcNow.TimeOfDay.TotalMilliseconds}.{ctx.FileExtension}")
-            ));
-        }
     }
 
     /// <summary>
