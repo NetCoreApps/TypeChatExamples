@@ -20,12 +20,12 @@ public class ConfigureGpt : IHostingStartup
             services.AddSingleton<MusicPromptProvider>();
             services.AddSingleton<IPromptProviderFactory>(c => new PromptProviderFactory {
                 Providers = {
-                    [Tags.CoffeeShop] = c.Resolve<CoffeeShopPromptProvider>(),
-                    [Tags.Sentiment] = c.Resolve<SentimentPromptProvider>(),
-                    [Tags.Calendar] = c.Resolve<CalendarPromptProvider>(),
-                    [Tags.Restaurant] = c.Resolve<RestaurantPromptProvider>(),
-                    [Tags.Math] = c.Resolve<MathPromptProvider>(),
-                    [Tags.Music] = c.Resolve<MusicPromptProvider>(),
+                    [Tags.CoffeeShop] = c.GetRequiredService<CoffeeShopPromptProvider>(),
+                    [Tags.Sentiment] = c.GetRequiredService<SentimentPromptProvider>(),
+                    [Tags.Calendar] = c.GetRequiredService<CalendarPromptProvider>(),
+                    [Tags.Restaurant] = c.GetRequiredService<RestaurantPromptProvider>(),
+                    [Tags.Math] = c.GetRequiredService<MathPromptProvider>(),
+                    [Tags.Music] = c.GetRequiredService<MusicPromptProvider>(),
                 }
             });
             
@@ -38,7 +38,7 @@ public class ConfigureGpt : IHostingStartup
                         Environment.GetEnvironmentVariable("OPENAI_API_KEY")!)
                     .Build();
                 services.AddSingleton(kernel);
-                services.AddSingleton<ITypeChat>(c => new KernelTypeChat(c.Resolve<IKernel>()));
+                services.AddSingleton<ITypeChat>(c => new KernelTypeChat(c.GetRequiredService<IKernel>()));
             }
             else if (gptProvider == nameof(NodeTypeChat))
             {

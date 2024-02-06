@@ -26,8 +26,8 @@ public class ConfigureSpeech : IHostingStartup
                 {
                     Resolve = feature =>
                     {
-                        var config = c.Resolve<AppConfig>();
-                        var gcp = c.Resolve<GoogleCloudConfig>();
+                        var config = c.GetRequiredService<AppConfig>();
+                        var gcp = c.GetRequiredService<GoogleCloudConfig>();
                         var siteConfig = config.GetSiteConfig(feature);
 
                         return new GoogleCloudSpeechToText(
@@ -48,8 +48,8 @@ public class ConfigureSpeech : IHostingStartup
                 {
                     Resolve = feature =>
                     {
-                        var config = c.Resolve<AppConfig>();
-                        var aws = c.Resolve<AwsConfig>();
+                        var config = c.GetRequiredService<AppConfig>();
+                        var aws = c.GetRequiredService<AwsConfig>();
                         var siteConfig = config.GetSiteConfig(feature);
                         
                         return new AwsSpeechToText(
@@ -64,7 +64,7 @@ public class ConfigureSpeech : IHostingStartup
             else if (speechProvider == nameof(AzureSpeechToText))
             {
                 services.AddSingleton<ISpeechToText>(c => 
-                    new AzureSpeechToText(c.Resolve<AzureConfig>().ToSpeechConfig()));
+                    new AzureSpeechToText(c.GetRequiredService<AzureConfig>().ToSpeechConfig()));
             }
             else if (speechProvider == nameof(WhisperApiSpeechToText))
             {
@@ -73,7 +73,7 @@ public class ConfigureSpeech : IHostingStartup
             else if (speechProvider == nameof(WhisperLocalSpeechToText))
             {
                 services.AddSingleton<ISpeechToText>(c => {
-                    var config = c.Resolve<AppConfig>();
+                    var config = c.GetRequiredService<AppConfig>();
                     return new WhisperLocalSpeechToText {
                         WhisperPath = config.WhisperPath ?? ProcessUtils.FindExePath("whisper"),
                         TimeoutMs = config.NodeProcessTimeoutMs,
