@@ -91,9 +91,6 @@ jobs:
       
       # Build and push new docker image, skip for manual redeploy other than 'latest'
       - name: Build and push Docker image
-        with:
-          secrets: |
-            googlecloud_credentials_base64=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
         run: |
           dotnet publish --os linux --arch x64 -c Release -p:ContainerRepository=${{ env.image_repository_name }} -p:ContainerRegistry=ghcr.io -p:ContainerImageTags=${{ env.TAG_NAME }} -p:ContainerPort=80
 
@@ -167,6 +164,7 @@ jobs:
             export APP_ID=$(docker compose run --entrypoint "id -u" --rm app)
             docker compose run --entrypoint "chown $APP_ID:$APP_ID /app/App_Data" --user root --rm app
             docker compose up app-migration --exit-code-from app-migration
+            docker compose run --entrypoint "echo '${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}' | base64 -d > /app/googlecloud-credentials.json && chown $APP_ID:$APP_ID /app/googlecloud-credentials.json" --user root --rm app
 
       # Deploy Docker image with your application using `docker compose up` remotely
       - name: remote docker-compose up via ssh
