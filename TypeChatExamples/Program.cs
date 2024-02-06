@@ -1,8 +1,24 @@
+using TypeChatExamples.ServiceInterface;
+
 AppHost.RegisterKey();
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 var mvcBuilder = builder.Services.AddRazorPages();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Register all services
+builder.Services.AddServiceStack(typeof(MusicService).Assembly, c => {
+    c.AddSwagger(o => {
+        //o.AddJwtBearer();
+        o.AddBasicAuth();
+    });
+});
+
+// Add HttpContextAccessor so we can access the current HttpContext in Services
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -10,6 +26,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     mvcBuilder.AddRazorRuntimeCompilation();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 else
 {
@@ -21,14 +39,15 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseServiceStack(new AppHost());
-
 app.UseRouting();
 
 app.UseAuthorization();
 
 app.MapRazorPages();
 
-app.UseStatusCodePagesWithReExecute("/Error", "?status={0}");
+app.UseServiceStack(new AppHost(), c =>
+{
+    c.MapEndpoints();
+});
 
 app.Run();

@@ -4,15 +4,8 @@ using ServiceStack.Script;
 
 namespace TypeChatExamples.ServiceInterface;
 
-public class MathPromptProvider : IPromptProvider
+public class MathPromptProvider(AppConfig Config) : IPromptProvider
 {
-    public AppConfig Config { get; set; }
-
-    public MathPromptProvider(AppConfig config)
-    {
-        Config = config;
-    }
-
     public async Task<string> CreateSchemaAsync(CancellationToken token = default)
     {
         var file = new FileInfo(Config.Math.GptPath.CombineWith("schema.ss"));

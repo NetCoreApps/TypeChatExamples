@@ -5,17 +5,8 @@ using ServiceStack.Script;
 
 namespace TypeChatExamples.ServiceInterface;
 
-public class RestaurantPromptProvider : IPromptProvider
+public class RestaurantPromptProvider(AppConfig Config,IDbConnectionFactory DbFactory) : IPromptProvider
 {
-    public IDbConnectionFactory DbFactory { get; set; }
-    public AppConfig Config { get; set; }
-
-    public RestaurantPromptProvider(IDbConnectionFactory dbFactory, AppConfig config)
-    {
-        DbFactory = dbFactory;
-        Config = config;
-    }
-    
     public async Task<string> CreateSchemaAsync(CancellationToken token = default)
     {
         var file = new FileInfo(Config.Restaurant.GptPath.CombineWith("schema.ss"));

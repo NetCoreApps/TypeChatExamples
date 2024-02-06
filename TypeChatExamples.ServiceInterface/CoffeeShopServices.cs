@@ -4,10 +4,8 @@ using ServiceStack.OrmLite;
 
 namespace TypeChatExamples.ServiceInterface;
 
-public class CoffeeShopServices : Service
+public class CoffeeShopServices(IAutoQueryDb AutoQuery) : Service
 {
-    public IAutoQueryDb AutoQuery { get; set; }
-    
     public async Task<object> Any(UpdateCategory request)
     {
         // Perform all RDBMS Updates within the same Transaction

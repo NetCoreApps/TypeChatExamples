@@ -7,14 +7,12 @@ using TypeChatExamples.ServiceModel;
 
 namespace TypeChatExamples.ServiceInterface;
 
-public class GptServices : Service
+public class GptServices(AppConfig Config,IAutoQueryDb AutoQuery,
+    IPromptProviderFactory PromptFactory,ITypeChat TypeChat) : Service
 {
-    public AppConfig Config { get; set; }
-    public IAutoQueryDb AutoQuery { get; set; }
-    public ISpeechToText? SpeechToText { get; set; }
-    public ISpeechToTextFactory? SpeechToTextFactory { get; set; }
-    public IPromptProviderFactory PromptFactory { get; set; }
-    public ITypeChat TypeChat { get; set; }
+    private ISpeechToText? SpeechToText => HostContext.Resolve<ISpeechToText>();
+    private ISpeechToTextFactory? SpeechToTextFactory => HostContext.Resolve<ISpeechToTextFactory>();
+    
     public ISpeechToText GetSpeechToText(string name) => SpeechToTextFactory?.Get(name) ?? SpeechToText
         ?? throw new ResolutionException(typeof(ISpeechToText), "No ISpeechToText is configured");
 

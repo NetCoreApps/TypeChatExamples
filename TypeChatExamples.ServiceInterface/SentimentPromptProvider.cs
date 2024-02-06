@@ -4,15 +4,8 @@ using ServiceStack.Script;
 
 namespace TypeChatExamples.ServiceInterface;
 
-public class SentimentPromptProvider : IPromptProvider
+public class SentimentPromptProvider(AppConfig Config) : IPromptProvider
 {
-    public AppConfig Config { get; set; }
-
-    public SentimentPromptProvider(AppConfig config)
-    {
-        Config = config;
-    }
-
     public async Task<string> CreateSchemaAsync(CancellationToken token = default)
     {
         var file = new FileInfo(Config.Sentiment.GptPath.CombineWith("schema.ss"));

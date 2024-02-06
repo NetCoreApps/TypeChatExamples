@@ -4,15 +4,8 @@ using ServiceStack.Script;
 
 namespace TypeChatExamples.ServiceInterface;
 
-public class MusicPromptProvider : IPromptProvider
+public class MusicPromptProvider(AppConfig Config) : IPromptProvider
 {
-    public AppConfig Config { get; set; }
-
-    public MusicPromptProvider(AppConfig config)
-    {
-        Config = config;
-    }
-
     public async Task<string> CreateSchemaAsync(CancellationToken token = default)
     {
         var file = new FileInfo(Config.Music.GptPath.CombineWith("schema.ss"));

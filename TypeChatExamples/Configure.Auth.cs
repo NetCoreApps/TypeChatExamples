@@ -1,4 +1,5 @@
 using ServiceStack.Auth;
+using ServiceStack.Configuration;
 using ServiceStack.FluentValidation;
 
 [assembly: HostingStartup(typeof(TypeChatExamples.ConfigureAuth))]
@@ -26,13 +27,15 @@ namespace TypeChatExamples
     public class ConfigureAuth : IHostingStartup
     {
         public void Configure(IWebHostBuilder builder) => builder
-            .ConfigureServices(services => {
+            .ConfigureServices((context, services) =>
+            {
                 //services.AddSingleton<ICacheClient>(new MemoryCacheClient()); //Store User Sessions in Memory Cache (default)
-            })
-            .ConfigureAppHost(appHost => {
-                var appSettings = appHost.AppSettings;
-                appHost.Plugins.Add(new AuthFeature(() => new CustomUserSession(),
-                    new IAuthProvider[] {
+                var configurationSection = context.Configuration.GetSection("GoogleCloudConfig");
+                var appSettings = new AppSettings();
+                PopulateAppSettings(configurationSection, appSettings);
+                services.AddPlugin(new AuthFeature(() => new CustomUserSession(),
+                    new IAuthProvider[]
+                    {
                         new CredentialsAuthProvider(appSettings),
                         new SpotifyAuthProvider(appSettings)
                         {
@@ -45,15 +48,22 @@ namespace TypeChatExamples
                                 "user-read-playback-state",
                                 "user-read-currently-playing"
                             }
-                        }  /* Create App https://developer.spotify.com/my-applications */
-                    }) {
+                        } /* Create App https://developer.spotify.com/my-applications */
+                    })
+                {
                     HtmlRedirect = "/signin"
                 });
-
-                appHost.Plugins.Add(new RegistrationFeature()); //Enable /register Service
-
-                //override the default registration validation with your own custom implementation
-                appHost.RegisterAs<CustomRegistrationValidator, IValidator<Register>>();
+                services.AddPlugin(new RegistrationFeature());
+                services.AddSingleton<IValidator<Register>, CustomRegistrationValidator>();
             });
+        
+        private void PopulateAppSettings(IConfigurationSection configurationSection, AppSettings appSettings)
+        {
+            var keys = configurationSection.GetChildren();
+            foreach (var key in keys)
+            {
+                appSettings.Set(key.Key, key.Value);
+            }
+        }
     }
 }

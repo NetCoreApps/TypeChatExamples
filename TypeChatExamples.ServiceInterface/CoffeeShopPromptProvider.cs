@@ -7,17 +7,8 @@ using ServiceStack.Script;
 
 namespace TypeChatExamples.ServiceInterface;
 
-public class CoffeeShopPromptProvider : IPromptProvider, IPhrasesProvider
+public class CoffeeShopPromptProvider(IDbConnectionFactory DbFactory,AppConfig Config) : IPromptProvider, IPhrasesProvider
 {
-    public IDbConnectionFactory DbFactory { get; set; }
-    public AppConfig Config { get; set; }
-
-    public CoffeeShopPromptProvider(IDbConnectionFactory dbFactory, AppConfig config)
-    {
-        DbFactory = dbFactory;
-        Config = config;
-    }
-
     public async Task<IEnumerable<string>> GetPhrasesAsync(CancellationToken token = default)
     {
         using var db = await DbFactory.OpenDbConnectionAsync(token: token);

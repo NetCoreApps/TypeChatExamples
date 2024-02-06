@@ -23,6 +23,7 @@
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.30.*" />
     <PackageReference Include="ServiceStack" Version="8.*" />
+    <PackageReference Include="ServiceStack.AspNetCore.OpenApi" Version="8.*" />
     <PackageReference Include="ServiceStack.Mvc" Version="8.*" />
     <PackageReference Include="ServiceStack.Server" Version="8.*" />
     <PackageReference Include="ServiceStack.OrmLite.Sqlite.Data" Version="8.*" />

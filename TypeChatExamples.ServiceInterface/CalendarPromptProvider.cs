@@ -4,15 +4,8 @@ using ServiceStack.Script;
 
 namespace TypeChatExamples.ServiceInterface;
 
-public class CalendarPromptProvider : IPromptProvider
+public class CalendarPromptProvider(AppConfig Config) : IPromptProvider
 {
-    public AppConfig Config { get; set; }
-
-    public CalendarPromptProvider(AppConfig config)
-    {
-        Config = config;
-    }
-
     public async Task<string> CreateSchemaAsync(CancellationToken token = default)
     {
         var file = new FileInfo(Config.Calendar.GptPath.CombineWith("schema.ss"));

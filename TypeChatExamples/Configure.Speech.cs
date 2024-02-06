@@ -85,9 +85,9 @@ public class ConfigureSpeech : IHostingStartup
         .ConfigureAppHost(afterConfigure:appHost => {
             if (AppTasks.IsRunAsAppTask()) return;
 
-            if (appHost.TryResolve<ISpeechToText>() is IRequireVirtualFiles requireVirtualFiles)
+            if (ServiceStackHost.Instance.TryResolve<ISpeechToText>() is IRequireVirtualFiles requireVirtualFiles)
             {
-                requireVirtualFiles.VirtualFiles = appHost.VirtualFiles;
+                requireVirtualFiles.VirtualFiles = ServiceStackHost.Instance.VirtualFiles;
             }
         });
 }

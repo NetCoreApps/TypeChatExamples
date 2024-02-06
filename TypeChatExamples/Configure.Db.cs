@@ -9,11 +9,11 @@ namespace TypeChatExamples;
 public class ConfigureDb : IHostingStartup
 {
     public void Configure(IWebHostBuilder builder) => builder
-        .ConfigureServices((context,services) => services.AddSingleton<IDbConnectionFactory>(new OrmLiteConnectionFactory(
-            context.Configuration.GetConnectionString("DefaultConnection") ?? "App_Data/db.sqlite",
-            SqliteDialect.Provider)))
-        .ConfigureAppHost(appHost =>
+        .ConfigureServices((context,services) =>
         {
-            appHost.Plugins.Add(new AdminDatabaseFeature());
+            services.AddSingleton<IDbConnectionFactory>(new OrmLiteConnectionFactory(
+                context.Configuration.GetConnectionString("DefaultConnection") ?? "App_Data/db.sqlite",
+                SqliteDialect.Provider));
+            services.AddPlugin(new AdminDatabaseFeature());
         });
 }
