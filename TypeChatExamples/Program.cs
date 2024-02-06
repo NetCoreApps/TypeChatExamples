@@ -17,9 +17,6 @@ builder.Services.AddServiceStack(typeof(MusicService).Assembly, c => {
     });
 });
 
-// Add HttpContextAccessor so we can access the current HttpContext in Services
-builder.Services.AddHttpContextAccessor();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
