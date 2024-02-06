@@ -62,7 +62,7 @@ jobs:
       - name: setup .net core
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0'
+          dotnet-version: '8.*'
           
       - name: Install x tool
         run: dotnet tool install -g x
@@ -90,16 +90,12 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       
       # Build and push new docker image, skip for manual redeploy other than 'latest'
-      - name: Build and push Docker images
-        uses: docker/build-push-action@v3
-        if: ${{ github.event.inputs.version == '' || github.event.inputs.version == 'latest' }}
+      - name: Build and push Docker image
         with:
-          file: Dockerfile
-          context: .
-          push: true
-          tags: ghcr.io/${{ env.image_repository_name }}:${{ env.TAG_NAME }}
           secrets: |
             googlecloud_credentials_base64=${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_BASE64 }}
+        run: |
+          dotnet publish --os linux --arch x64 -c Release -p:ContainerRepository=${{ env.image_repository_name }} -p:ContainerRegistry=ghcr.io -p:ContainerImageTags=${{ env.TAG_NAME }} -p:ContainerPort=80
 
   deploy_via_ssh:
     needs: push_to_registry
@@ -127,21 +123,6 @@ jobs:
             echo "TAG_NAME=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           fi;
 
-      # Populate docker-compose.yml with variables from build process, including TAG_NAME.
-      - name: docker-compose file prep
-        uses: danielr1996/envsubst-action@1.0.0
-        env:
-          RELEASE_VERSION: ${{ env.TAG_NAME }}
-          IMAGE_REPO: ${{ env.image_repository_name }}
-          APP_NAME: ${{ github.event.repository.name }}
-          HOST_DOMAIN: ${{ secrets.DEPLOY_HOST }}
-          LETSENCRYPT_EMAIL: ${{ secrets.LETSENCRYPT_EMAIL }}
-          OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        with:
-          input: .deploy/docker-compose-template.yml
-          output: .deploy/${{ github.event.repository.name }}-docker-compose.yml
-
       - name: Create .env file
         run: |
           echo "Generating .env file"
@@ -163,7 +144,8 @@ jobs:
           username: ${{ secrets.DEPLOY_USERNAME }}
           port: 22
           key: ${{ secrets.DEPLOY_KEY }}
-          source: "./docker-compose.yml,./docker-compose.prod.yml,./.env"
+          strip_components: 2
+          source: "./.deploy/docker-compose.yml,./.deploy/.env"
           target: "~/.deploy/${{ github.event.repository.name }}/"
 
       - name: Run remote db migrations
@@ -178,10 +160,13 @@ jobs:
           port: 22
           envs: APPTOKEN,USERNAME
           script: |
+            set -e
             echo $APPTOKEN | docker login ghcr.io -u $USERNAME --password-stdin
             cd ~/.deploy/${{ github.event.repository.name }}
-            docker compose -f ./docker-compose.yml -f ./docker-compose.prod.yml pull
-            docker compose -f ./docker-compose.yml -f ./docker-compose.prod.yml up app-migration
+            docker compose pull
+            export APP_ID=$(docker compose run --entrypoint "id -u" --rm app)
+            docker compose run --entrypoint "chown $APP_ID:$APP_ID /app/App_Data" --user root --rm app
+            docker compose up app-migration --exit-code-from app-migration
 
       # Deploy Docker image with your application using `docker compose up` remotely
       - name: remote docker-compose up via ssh
@@ -198,5 +183,5 @@ jobs:
           script: |
             echo $APPTOKEN | docker login ghcr.io -u $USERNAME --password-stdin
             cd ~/.deploy/${{ github.event.repository.name }}
-            docker compose -f ./docker-compose.yml -f ./docker-compose.prod.yml pull
-            docker compose -f ./docker-compose.yml -f ./docker-compose.prod.yml up app -d
+            docker compose pull
+            docker compose up app -d

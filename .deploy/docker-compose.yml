@@ -1,8 +1,9 @@
 version: "3.9"
 services:
-  ${APP_NAME}:
+  app:
     image: ghcr.io/${IMAGE_REPO}:${RELEASE_VERSION}
     restart: always
+    container_name: ${APP_NAME}_app
     ports:
       - "8080"
     environment:
@@ -14,18 +15,20 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       GOOGLE_APPLICATION_CREDENTIALS: "/app/googlecloud-credentials.json"
     volumes:
-      - ${APP_NAME}-mydb:/app/App_Data
-  ${APP_NAME}-migration:
+      - app-mydb:/app/App_Data
+
+  migration:
     image: ghcr.io/${IMAGE_REPO}:${RELEASE_VERSION}
+    container_name: ${APP_NAME}_app_migration
     restart: "no"
     profiles:
       - migration
     command: --AppTasks=migrate
     volumes:
-      - ${APP_NAME}-mydb:/app/App_Data
+      - app-mydb:/app/App_Data
 
 volumes:
-  ${APP_NAME}-mydb:
+  app-mydb:
 
 networks:
   default:
