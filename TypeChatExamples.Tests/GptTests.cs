@@ -34,6 +34,10 @@ public class GptTests
                             GptPath = Path.GetFullPath("gpt/coffeeshop"),
                             RecognizerId = "coffeeshop-recognizer",
                             PhraseSetId = "coffeeshop-phrases",
+                        },
+                        Sentiment = new()
+                        {
+                            GptPath = Path.GetFullPath("gpt/sentiment"),
                         }
                     };
                     host.Register(appConfig);
@@ -45,15 +49,15 @@ public class GptTests
                     
                     host.LoadPlugin(new AutoQueryFeature());
                     
-                    var kernel = Kernel.Builder
-                        .WithOpenAIChatCompletionService(
+                    var kernel = Kernel.CreateBuilder()
+                        .AddOpenAIChatCompletion(
                             Environment.GetEnvironmentVariable("OPENAI_MODEL")!,
                             Environment.GetEnvironmentVariable("OPENAI_API_KEY")!)
                         .Build();
 
                     host.Register(kernel);
                     var services = host.Container;
-                    services.AddSingleton<ITypeChat>(c => new KernelTypeChat(c.Resolve<IKernel>()));
+                    services.AddSingleton<ITypeChat>(c => new KernelTypeChat(c.Resolve<Kernel>()));
                     services.AddSingleton<CoffeeShopPromptProvider>();
                     services.AddSingleton<SentimentPromptProvider>();
                     services.AddSingleton<CalendarPromptProvider>();
@@ -99,6 +103,20 @@ public class GptTests
     }
 
     [Test]
+    public async Task Execute_semantic_kernel_prompt()
+    {
+        using var appHost = CreateAppHost();
+        var service = appHost.Resolve<SentimentPromptProvider>();
+        var prompt = await service.CreatePromptAsync("i wanna latte macchiato with vanilla");
+        prompt.Print();
+        var typeChat = appHost.Resolve<ITypeChat>();
+        var response = await typeChat.TranslateMessageAsync(new TypeChatRequest(null, prompt, null));
+        
+        "Response:".Print();
+        response.PrintDump();
+    }
+
+    [Test]
     public async Task Execute_Raw_Prompt()
     {
         var request = "i wanna latte macchiato with vanilla";
@@ -123,7 +141,6 @@ export interface Syrups {
 ```
 ",
         });
-        
         
         var dto = new Dictionary<string, object>
         {

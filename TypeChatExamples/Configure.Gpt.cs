@@ -33,12 +33,13 @@ public class ConfigureGpt : IHostingStartup
             var gptProvider = context.Configuration.GetValue<string>("TypeChatProvider");
             if (gptProvider == nameof(KernelTypeChat))
             {
-                var kernel = new KernelBuilder().WithOpenAIChatCompletionService(
+                var kernel = Kernel.CreateBuilder()
+                    .AddOpenAIChatCompletion(
                         Environment.GetEnvironmentVariable("OPENAI_MODEL") ?? "gpt-3.5-turbo", 
                         Environment.GetEnvironmentVariable("OPENAI_API_KEY")!)
                     .Build();
                 services.AddSingleton(kernel);
-                services.AddSingleton<ITypeChat>(c => new KernelTypeChat(c.GetRequiredService<IKernel>()));
+                services.AddSingleton<ITypeChat>(c => new KernelTypeChat(c.GetRequiredService<Kernel>()));
             }
             else if (gptProvider == nameof(NodeTypeChat))
             {

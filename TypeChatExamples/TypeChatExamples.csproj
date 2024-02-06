@@ -34,11 +34,11 @@
     <PackageReference Include="ServiceStack.Azure" Version="8.*" />
     <PackageReference Include="Google.Cloud.Storage.V1" Version="4.7.0" />
     <PackageReference Include="Google.Cloud.Speech.V2" Version="1.0.0-beta07" />
-    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.33.0" />
+    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.35.0" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.3.0" />
 
     <!-- Required for Razor compilation on change: https://docs.microsoft.com/en-us/aspnet/core/mvc/views/view-compilation?view=aspnetcore-5.0 -->
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.*" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.0.0-beta6" />
   </ItemGroup>
 
   <ItemGroup>
