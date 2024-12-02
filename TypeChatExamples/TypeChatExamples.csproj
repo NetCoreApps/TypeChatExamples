@@ -11,6 +11,10 @@
     <Using Include="ServiceStack" />
     <Using Include="ServiceStack.Mvc" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <ContainerLabel Include="service" Value="type-chat-examples" />
+  </ItemGroup>
 
   <!-- dotnet watch support -->
   <Target Name="RazorWatch" BeforeTargets="_CoreCollectWatchItems">
