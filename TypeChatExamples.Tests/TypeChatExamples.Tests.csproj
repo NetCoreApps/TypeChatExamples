@@ -28,10 +28,10 @@
     <PackageReference Include="AWSSDK.SQS" Version="3.7.*" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+<!--  <ItemGroup>-->
+<!--    <None Update="appsettings.json">-->
+<!--      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>-->
+<!--    </None>-->
+<!--  </ItemGroup>-->
 
 </Project>
