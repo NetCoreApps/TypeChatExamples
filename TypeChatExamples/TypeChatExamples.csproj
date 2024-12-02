@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+    <PublishProfile>DefaultContainer</PublishProfile>
   </PropertyGroup>
   <ItemGroup>
     <Using Include="TypeChatExamples" />
