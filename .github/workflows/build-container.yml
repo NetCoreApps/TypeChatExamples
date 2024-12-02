@@ -88,5 +88,5 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker build . -t ghcr.io/${{ env.image_repository_name }}:latest
+          docker build . --label "service=type-chat-examples" -t ghcr.io/${{ env.image_repository_name }}:latest
           docker push ghcr.io/${{ env.image_repository_name }}:latest
