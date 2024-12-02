@@ -42,12 +42,6 @@ jobs:
             echo "HAS_DEPLOY_ACTION=false" >> $GITHUB_ENV
           fi
 
-      # This step is for the deployment of the templates only, safe to delete
-      - name: Modify csproj for template deploy
-        if: env.HAS_DEPLOY_ACTION == 'true'
-        run: |
-          sed -i 's#<ContainerLabel Include="service" Value="type-chat-examples" />#<ContainerLabel Include="service" Value="${{ env.repository_name_lower }}" />#g' TypeChatExamples/TypeChatExamples.csproj
-
       - name: Check for Client directory and package.json
         id: check_client
         run: |
@@ -94,4 +88,5 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          dotnet publish --os linux --arch x64 -c Release -p:ContainerRepository=${{ env.image_repository_name }} -p:ContainerRegistry=ghcr.io -p:ContainerImageTags=latest -p:ContainerPort=80
+          docker build . -t ghcr.io/${{ env.image_repository_name }}:latest
+          docker push ghcr.io/${{ env.image_repository_name }}:latest
